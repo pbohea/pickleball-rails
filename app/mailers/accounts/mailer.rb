@@ -12,7 +12,7 @@ class Accounts::Mailer < Devise::Mailer
   # before_action { headers["X-SES-CONFIGURATION-SET"] = "dev-logs" }
 
   def reset_password_instructions(record, token, opts = {})
-    scope = Devise::Mapping.find_scope!(record) # => :user / :artist / :owner
+    scope = Devise::Mapping.find_scope!(record) # => :user
     opts[:subject] ||= "#{brand_for(scope)} password reset"
 
     @reset_url = public_send("edit_#{scope}_password_url", reset_password_token: token)
@@ -38,11 +38,6 @@ class Accounts::Mailer < Devise::Mailer
   private
 
   def brand_for(scope)
-    case scope
-    when :user   then "Pickleball"
-    when :artist then "Pickleball Artist"
-    when :owner  then "Pickleball Owner"
-    else "Pickleball"
-    end
+    "Pickleball"
   end
 end

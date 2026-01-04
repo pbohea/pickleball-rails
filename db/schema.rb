@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_04_145133) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -41,6 +41,31 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "analyses", force: :cascade do |t|
+    t.bigint "video_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string "model_version"
+    t.jsonb "cv_results", default: {}, null: false
+    t.text "summary"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["video_id", "created_at"], name: "index_analyses_on_video_id_and_created_at"
+    t.index ["video_id"], name: "index_analyses_on_video_id"
+  end
+
+  create_table "analysis_events", force: :cascade do |t|
+    t.bigint "analysis_id", null: false
+    t.bigint "timestamp_ms", null: false
+    t.string "event_type", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["analysis_id", "timestamp_ms"], name: "index_analysis_events_on_analysis_id_and_timestamp_ms"
+    t.index ["analysis_id"], name: "index_analysis_events_on_analysis_id"
   end
 
   create_table "artist_follows", force: :cascade do |t|
@@ -98,6 +123,37 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
     t.index ["spotify_artist_id"], name: "index_artists_on_spotify_artist_id"
     t.index ["tiktok_username"], name: "index_artists_on_tiktok_username"
     t.index ["youtube_username"], name: "index_artists_on_youtube_username"
+  end
+
+  create_table "conversations", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "video_id", null: false
+    t.bigint "analysis_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["analysis_id"], name: "index_conversations_on_analysis_id"
+    t.index ["user_id"], name: "index_conversations_on_user_id"
+    t.index ["video_id"], name: "index_conversations_on_video_id"
+  end
+
+  create_table "data_deletion_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "requested_at", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_data_deletion_requests_on_user_id"
+  end
+
+  create_table "data_export_requests", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "requested_at", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_data_export_requests_on_user_id"
   end
 
   create_table "event_artists", force: :cascade do |t|
@@ -176,6 +232,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
     t.datetime "updated_at", null: false
     t.index ["artist_id"], name: "index_follows_on_artist_id"
     t.index ["user_id"], name: "index_follows_on_user_id"
+  end
+
+  create_table "messages", force: :cascade do |t|
+    t.bigint "conversation_id", null: false
+    t.integer "role", default: 0, null: false
+    t.text "content", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["conversation_id", "created_at"], name: "index_messages_on_conversation_id_and_created_at"
+    t.index ["conversation_id"], name: "index_messages_on_conversation_id"
   end
 
   create_table "noticed_events", force: :cascade do |t|
@@ -465,10 +532,30 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
     t.index ["slug"], name: "index_venues_on_slug", unique: true
   end
 
+  create_table "videos", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title"
+    t.text "notes"
+    t.integer "source", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "uploaded_at"
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_videos_on_user_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "analyses", "videos"
+  add_foreign_key "analysis_events", "analyses"
   add_foreign_key "artist_follows", "artists"
   add_foreign_key "artist_leads", "artists"
+  add_foreign_key "conversations", "analyses"
+  add_foreign_key "conversations", "users"
+  add_foreign_key "conversations", "videos"
+  add_foreign_key "data_deletion_requests", "users"
+  add_foreign_key "data_export_requests", "users"
   add_foreign_key "event_artists", "artists"
   add_foreign_key "event_artists", "events"
   add_foreign_key "event_import_rows", "event_import_batches"
@@ -476,6 +563,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
   add_foreign_key "events", "promoters"
   add_foreign_key "follows", "artists"
   add_foreign_key "follows", "users"
+  add_foreign_key "messages", "conversations"
   add_foreign_key "notification_tokens", "artists"
   add_foreign_key "notification_tokens", "owners"
   add_foreign_key "notification_tokens", "users"
@@ -486,4 +574,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_21_183000) do
   add_foreign_key "solid_queue_recurring_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_scheduled_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "venue_follows", "venues"
+  add_foreign_key "videos", "users"
 end

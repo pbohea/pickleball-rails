@@ -1,15 +1,7 @@
 <!-- app/views/accounts/mailer/confirmation_instructions.text.erb -->
-<% if @resource.is_a?(Artist) %>
-Welcome to Pickleball, <%= @resource.username || 'Artist' %>!
-<% else %>
-Welcome to Pickleball, Venue Owner!
-<% end %>
+Welcome to Pickleball!
 
-<% if @resource.is_a?(Artist) %>
-Thanks for signing up as an artist on Pickleball. We're excited to have you join our community of musicians and performers!
-<% else %>
-Thanks for signing up as a venue owner on Pickleball. We're excited to help you connect with talented artists and grow your venue's presence!
-<% end %>
+Thanks for signing up for Pickleball. Please confirm your email address by clicking the link below:
 
 To complete your registration and access your dashboard, please confirm your email address by clicking the link below:
 

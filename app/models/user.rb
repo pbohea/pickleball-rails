@@ -21,14 +21,11 @@
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
-  include UniqueEmailAcrossModels
-
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  has_many :artist_follows, as: :follower, dependent: :destroy
-  has_many :followed_artists, through: :artist_follows, source: :artist
-  has_many :venue_follows, as: :follower, dependent: :destroy
-  has_many :followed_venues, through: :venue_follows, source: :venue
-  has_many :notification_tokens, dependent: :destroy
+  has_many :videos, dependent: :destroy
+  has_many :conversations, dependent: :destroy
+  has_many :data_export_requests, dependent: :destroy
+  has_many :data_deletion_requests, dependent: :destroy
 end

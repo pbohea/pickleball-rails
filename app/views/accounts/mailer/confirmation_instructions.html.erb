@@ -93,34 +93,13 @@
 <body>
   <div class="email-container">
     <div class="header">
-      <% if @resource.is_a?(Artist) %>
-        <h1>Welcome to Pickleball!</h1>
-      <% else %>
-        <h1>Welcome to Pickleball!</h1>
-      <% end %>
+      <h1>Welcome to Pickleball!</h1>
     </div>
     
     <div class="content">
-      <% if @resource.is_a?(Artist) %>
-        <p>Hi <%= @resource.username || 'there' %>!</p>
-        <p>Thanks for signing up as an artist on Pickleball. We're excited to have you join our community of musicians and performers!</p>
-        <p>To complete your registration and access your artist dashboard, please confirm your email address:</p>
-
-      <% elsif @resource.is_a?(Owner) %>
-        <p>Hi there!</p>
-        <p>Thanks for signing up as a venue owner on Pickleball. We're excited to help you connect with talented artists and grow your venue's presence!</p>
-        <p>To complete your registration and access your owner dashboard, please confirm your email address:</p>
-
-      <% elsif defined?(Promoter) && @resource.is_a?(Promoter) %>
-        <p>Hi there!</p>
-        <p>Thanks for signing up as a promoter / booker on Pickleball. We're excited to help you promote your artists & venues!</p>
-        <p>To complete your registration and access your dashboard, please confirm your email address:</p>
-
-      <% else %>
-        <p>Hi there!</p>
-        <p>Thanks for signing up for Pickleball!</p>
-        <p>Please confirm your email address:</p>
-      <% end %>
+      <p>Hi there!</p>
+      <p>Thanks for signing up for Pickleball!</p>
+      <p>Please confirm your email address:</p>
 
       <div class="button-container">
         <%= link_to "Confirm My Email", @confirmation_url, class: "button" %>
