@@ -1,0 +1,18 @@
+<turbo-frame id="venue_upcoming_events_frame">
+  <% if events.any? %>
+    <ul class="list-group">
+      <% events.each do |event| %>
+        <li class="list-group-item">
+          <strong>   
+            <%= link_to event.artist.username, artist_path(event.artist), class: "text-decoration-none", data: { turbo_frame: "_top" } %>
+          </strong><br>
+          <small>
+            <%= event.date.strftime("%B %-d, %Y") %> @ <%= event.start_time.strftime("%-I:%M %p") %>
+          </small>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-muted text-center">No upcoming events scheduled.</p>
+  <% end %>
+</turbo-frame>

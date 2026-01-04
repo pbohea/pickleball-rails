@@ -1,0 +1,47 @@
+<turbo-frame id="follow_button_<%= venue.id %>">
+  <div class="d-flex justify-content-center">
+    <div class="text-center">
+      <% if user_signed_in? || owner_signed_in? || artist_signed_in? %>
+        <% current_follower = current_user || current_owner || current_artist %>
+        <% follow = current_follower.venue_follows.find_by(venue_id: venue.id) %>
+
+        <% if follow %>
+          <%= button_to "Remove Favorite", venue_follow_path(follow),
+                        method: :delete,
+                        class: "btn btn-outline-danger btn-sm",
+                        data: { turbo_confirm: "Are you sure?" } %>
+        <% else %>
+          <%= button_to "Add Favorite", venue_follows_path(venue_id: venue.id),
+                        method: :post,
+                        class: "btn btn-success btn-sm" %>
+        <% end %>
+
+      <% elsif promoter_signed_in? %>
+        <% current_follower = current_promoter %>
+        <% follow = current_follower.venue_follows.find_by(venue_id: venue.id) %>
+
+        <% if follow %>
+          <%= button_to "Remove from my venues", venue_follow_path(follow),
+                        method: :delete,
+                        class: "btn btn-outline-danger btn-sm",
+                        data: { turbo_confirm: "Are you sure?" } %>
+        <% else %>
+          <%= button_to "Add to my venues", venue_follows_path(venue_id: venue.id),
+                        method: :post,
+                        class: "btn btn-success btn-sm" %>
+        <% end %>
+
+      <% else %>
+        <!-- Use Stimulus controller for alert -->
+        <div data-controller="auth-prompt" 
+             data-auth-prompt-message-value="You need to sign in to add venues to favorites. Go to sign in page?">
+          <button type="button"
+                  class="btn btn-success btn-sm"
+                  data-action="click->auth-prompt#prompt">
+            Add Favorite
+          </button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</turbo-frame>

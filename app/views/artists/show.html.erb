@@ -1,0 +1,178 @@
+<% content_for :title, "Artist Profile" %>
+
+<style>
+  .artist-profile-card {
+    border-radius: 24px;
+    background: white;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .artist-image-wrapper {
+    position: relative;
+    display: inline-block;
+    animation: scaleIn 0.8s ease-out 0.2s both;
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .artist-image-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    z-index: -1;
+    opacity: 0.15;
+  }
+
+  .social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .social-icon:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+
+  .badge-modern {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+</style>
+
+<div class="min-vh-100" style="background-color: #f8f9fa;">
+  <div class="px-3 pt-4" style="max-width: 500px; margin: 0 auto;">
+
+    <!-- Artist Profile Card -->
+    <div class="card border-0 artist-profile-card mb-4">
+      <div class="card-body text-center">
+        <!-- Profile Image -->
+        <div class="artist-image-wrapper mb-3">
+          <% if @artist.image.attached? %>
+            <% thumb = @artist.image.variant(resize_to_fill: [160, 160]).processed %>
+            <%= image_tag thumb, alt: "Artist Photo",
+                  class: "rounded-circle border border-white border-4",
+                  style: "width:160px;height:160px;object-fit:cover;box-shadow:0 12px 30px rgba(13, 110, 253, 0.25);" %>
+          <% else %>
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                style="width: 160px; height: 160px; color: white; background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%); box-shadow:0 12px 30px rgba(13, 110, 253, 0.25);">
+              <i class="fas fa-user fa-3x"></i>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Display Name -->
+        <h4 class="fw-bold mb-2 mt-2 display-6"
+            style="background: linear-gradient(90deg, #0d6efd, #4dabf7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+          <% if @artist.website.present? %>
+            <%= link_to @artist.username, @artist.website,
+                target: "_blank", rel: "noopener",
+                class: "text-decoration-none",
+                style: "background: linear-gradient(90deg, #0d6efd, #4dabf7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" %>
+          <% else %>
+            <%= @artist.username %>
+          <% end %>
+        </h4>
+
+        <!-- Genre and Performance Type -->
+        <% if @artist.genre.present? || @artist.performance_type.present? %>
+          <div class="mb-3">
+            <% if @artist.genre.present? %>
+              <span class="badge badge-modern bg-primary me-2"><%= @artist.genre %></span>
+            <% end %>
+            <% if @artist.performance_type.present? %>
+              <span class="badge badge-modern bg-secondary"><%= @artist.performance_type %></span>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Social Links -->
+        <% if @artist.instagram_username.present? || @artist.youtube_username.present? || @artist.tiktok_username.present? || @artist.spotify_artist_id.present? %>
+          <div class="d-flex justify-content-center gap-3 mt-3 mb-3 flex-wrap">
+            <% if @artist.instagram_username.present? %>
+              <%= link_to @artist.instagram_url, target: "_blank", rel: "noopener", class: "social-icon text-decoration-none" do %>
+                <i class="fab fa-instagram fa-xl" style="color: #E1306C;"></i>
+              <% end %>
+            <% end %>
+            <% if @artist.youtube_username.present? %>
+              <%= link_to @artist.youtube_url, target: "_blank", rel: "noopener", class: "social-icon text-decoration-none" do %>
+                <i class="fab fa-youtube fa-xl" style="color: #FF0000;"></i>
+              <% end %>
+            <% end %>
+            <% if @artist.tiktok_username.present? %>
+              <%= link_to @artist.tiktok_url, target: "_blank", rel: "noopener", class: "social-icon text-decoration-none" do %>
+                <i class="fab fa-tiktok fa-xl" style="color: #000000;"></i>
+              <% end %>
+            <% end %>
+            <% if @artist.spotify_artist_id.present? %>
+              <%= link_to @artist.spotify_url, target: "_blank", rel: "noopener", class: "social-icon text-decoration-none" do %>
+                <i class="fab fa-spotify fa-xl" style="color: #1DB954;"></i>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Follow/Unfollow Button -->
+        <turbo-frame id="follow_button_<%= @artist.id %>">
+          <%= render partial: "artists/follow_button", locals: { artist: @artist } %>
+        </turbo-frame>
+
+        <!-- Bio -->
+        <% if @artist.bio.present? %>
+          <p class="mt-3 text-muted"><%= simple_format(@artist.bio) %></p>
+        <% end %>
+      </div>
+    </div>
+
+     <%= render partial: "shared/event_cards" %>
+
+  </div>
+</div>
+
+<!-- Modal if not signed in -->
+<div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p class="mb-3">Sign in or sign up to follow this artist.</p>
+        <div class="d-flex justify-content-center gap-2">
+          <%= link_to "Sign In", new_user_session_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+          <%= link_to "Sign Up", new_user_registration_path, class: "btn btn-primary", data: { turbo: false } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

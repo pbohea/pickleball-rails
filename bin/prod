@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- Environment ---
+export RAILS_ENV=production
+
+# Load the production master key (pick one of the two lines)
+export RAILS_MASTER_KEY="${RAILS_MASTER_KEY:-$(cat config/credentials/production.key 2>/dev/null || true)}"
+
+# Optional: force APNs prod (not strictly needed since RAILS_ENV=production)
+export APNS_ENV=production
+
+# If you’ll tunnel, allow your ngrok host in production.rb (see step 3)
+
+# --- Start processes using a prod Procfile ---
+exec foreman start -f Procfile.prod

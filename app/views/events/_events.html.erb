@@ -1,0 +1,147 @@
+<% venue  = events.venue %>
+<% st = events.starts_at_local; et = events.ends_at_local %>
+<% today_label = (st.to_date == st.time_zone.today) ? "Today" : st.strftime("%A, %b %-d") %>
+
+<% db_artists   = events.all_artists.includes(image_attachment: :blob) %>
+<% manual_names = events.event_artists.where(artist_id: nil).pluck(:manual_name) %>
+
+
+<% primary_manual = events.artist_id.present? ? "" : events.artist_name.to_s.strip %>
+<% manual_names = ([primary_manual] + manual_names).reject(&:blank?).uniq %>
+
+<div class="card event-card mb-4 position-relative"
+     data-controller="event-card"
+     data-event-card-url-value="<%= event_path(events) %>"
+     data-action="click->event-card#goToEvent">
+
+  <div class="card-body text-center">
+    <!-- venue name at top -->
+    <div class="mb-3">
+      <p class="mb-0">
+        <%= link_to venue.name, venue_path(venue),
+                class: "fw-bold fs-5 text-decoration-none text-primary",
+                data: { turbo_frame: "_top" } %>
+      </p>
+
+      <!-- Show distance if available -->
+      <% if params[:address].present? || params[:lat].present? %>
+        <% if params[:lat].present? && params[:lng].present? && venue.latitude && venue.longitude %>
+          <% distance = Geocoder::Calculations.distance_between(
+                [params[:lat].to_f, params[:lng].to_f],
+                [venue.latitude, venue.longitude],
+                units: :mi
+              ).round(1) %>
+          <small class="text-muted">
+            <i class="bi bi-geo-alt"></i> <%= distance %> miles away
+          </small>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- artist avatars (DB artists only) -->
+    <% if db_artists.present? %>
+      <div class="mb-2 d-flex justify-content-center flex-wrap gap-2">
+        <% db_artists.each do |a| %>
+          <%= link_to artist_path(a), data: { turbo_frame: "_top" }, class: "d-inline-block" do %>
+            <% if a.image&.attached? %>
+              <%= image_tag a.image.variant(resize_to_fill: [56, 56]).processed,
+                    alt: "#{a.username} photo",
+                    class: "rounded-circle shadow-sm border border-white",
+                    style: "width:56px; height:56px; object-fit:cover;" %>
+            <% else %>
+              <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center shadow-sm border border-white"
+                   style="width:56px; height:56px; color:white;">
+                <i class="fas fa-user"></i>
+              </div>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- lineup: DB artist links + manual names -->
+    <div class="mb-0">
+      <% lineup_bits = [] %>
+
+      <% db_artists.each do |a| %>
+        <% lineup_bits << link_to(a.username, artist_path(a),
+                                  class: "text-decoration-none text-primary fw-semibold",
+                                  data: { turbo_frame: "_top" }) %>
+      <% end %>
+
+      <%# If no DB artists at all, fall back to the legacy single fields %>
+      <% if db_artists.blank? %>
+        <% if events.artist.present? %>
+          <% lineup_bits << link_to(events.artist.username, artist_path(events.artist),
+                                    class: "text-decoration-none text-reset fw-semibold",
+                                    data: { turbo_frame: "_top" }) %>
+        <%# <% elsif events.artist_name.present? %>
+        <%#   <% lineup_bits << content_tag(:span, events.artist_name, class: "text-muted fw-semibold") %>
+        <% end %>
+      <% end %>
+
+      <% manual_names.each do |name| %>
+        <% next if name.to_s.strip.blank? %>
+        <% lineup_bits << content_tag(:span, name, class: "text-muted fw-semibold") %>
+      <% end %>
+
+      <%= safe_join(lineup_bits, " • ".html_safe) %>
+    </div>
+
+    <!-- category (hide generic 'Other') -->
+    <% if events.category.present? && events.category != "Other" %>
+      <div class="mb-1 text-muted small">
+        <%= events.category %>
+      </div>
+    <% end %>
+
+    <!-- Date & Time Pill (venue-local) -->
+    <div class="mb-3">
+      <div class="d-inline-block px-3 py-1 rounded-pill bg-light text-dark fw-semibold" style="font-size: 0.9rem;">
+        <i class="bi bi-clock me-1"></i>
+        <%= today_label %> •
+        <%= st.strftime("%-I:%M %p") %> –
+        <%= et.strftime("%-I:%M %p") %>
+      </div>
+    </div>
+
+    <!-- Map Button -->
+    <% if venue.latitude.present? && venue.longitude.present? %>
+      <div>
+        <% if hotwire_native_app? %>
+          <!-- Native iOS App -->
+          <%= link_to "Map",
+                "/events/map?lat=#{venue.latitude}&lng=#{venue.longitude}&venue_id=#{venue.id}",
+                class: "btn btn-sm btn-outline-primary",
+                data: { turbo_frame: "_top" } %>
+        <% else %>
+          <!-- Web/Desktop -->
+          <%= link_to "Map",
+                "https://www.google.com/maps/search/?api=1&query=#{venue.latitude},#{venue.longitude}",
+                class: "btn btn-sm btn-outline-primary",
+                target: "_blank",
+                rel: "noopener noreferrer" %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<style>
+.card.event-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #ffffff;
+  border-left: 4px solid #0d6efd;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card.event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+}
+.card.event-card:active {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+</style>

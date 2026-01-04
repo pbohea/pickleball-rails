@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["3FB4FK9UPC.co.pickleball.Pickleball"],
+        "components": [
+          { "/": "/events/*" },
+          { "/": "/artists/*" },
+          { "/": "/venues/*" },
+          { "/": "/users/*" },
+          { "/": "/owners/*" },
+          { "/": "/artists/*" }
+        ]
+      }
+    ]
+  }
+}

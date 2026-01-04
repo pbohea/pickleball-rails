@@ -1,0 +1,78 @@
+<% running = (@batch.status == "running") %>
+
+<details style="margin:12px 0;" open>
+  <summary><strong>Debug Info</strong></summary>
+
+  <p><strong>Mode:</strong> <%= @batch.provider_request_id.present? ? "API (web_fetch)" : "Browser (Selenium)" %></p>
+
+  <% if @batch.provider_request_id.present? %>
+    <p><strong>Anthropic request_id:</strong> <code><%= @batch.provider_request_id %></code></p>
+  <% end %>
+
+  <% if @batch.tool_names.present? %>
+    <p><strong>tool_use names:</strong> <code><%= @batch.tool_names.join(", ") %></code></p>
+  <% end %>
+
+  <% if @batch.notes.present? %>
+    <p><strong>Execution Logs:</strong></p>
+    <pre style="white-space:pre-wrap;border:1px solid #ddd;padding:8px;border-radius:6px;background:#f9f9f9;max-height:300px;overflow:auto;"><%= @batch.notes %></pre>
+  <% end %>
+
+  <% if @batch.body_preview.present? %>
+    <p><strong>Body preview</strong></p>
+    <pre style="white-space:pre-wrap;border:1px solid #eee;padding:8px;border-radius:6px;"><%= @batch.body_preview %></pre>
+  <% end %>
+
+  <% if @batch.raw_response_json.present? %>
+    <p><strong>Full API Response JSON</strong></p>
+    <pre style="white-space:pre-wrap;border:1px solid #eee;padding:8px;border-radius:6px;max-height:420px;overflow:auto;">
+<%= JSON.pretty_generate(@batch.raw_response_json.as_json).truncate(100_000) %>
+    </pre>
+  <% end %>
+</details>
+
+<div
+  <% if running %>
+    data-controller="poll"
+    data-poll-url-value="<%= admin_event_import_path(@batch) %>"
+    data-poll-interval-value="5000"
+  <% end %>
+>
+  <turbo-frame id="batch" <% if running %>src="<%= admin_event_import_path(@batch) %>"<% end %>>
+    <div data-batch-status="<%= @batch.status %>">
+      <h1>Import Review – Batch #<%= @batch.id %> (<%= @batch.city %>)</h1>
+
+      <p>
+        <strong>Status:</strong>
+        <%= @batch.status.capitalize %>
+        <% if @batch.started_at.present? %>
+          · started <%= time_ago_in_words(@batch.started_at) %> ago
+        <% end %>
+        <% if @batch.finished_at.present? %>
+          · finished <%= time_ago_in_words(@batch.finished_at) %> ago
+        <% end %>
+      </p>
+
+      <% if @batch.notes.present? %>
+        <div style="background:#fff7f7;border:1px solid #f2caca;padding:12px;border-radius:8px;margin:8px 0;">
+          <strong>Notes</strong>
+          <pre style="white-space:pre-wrap;margin:6px 0 0 0;"><%= @batch.notes %></pre>
+        </div>
+      <% end %>
+
+      <% if @rows.blank? %>
+        <div style="background:#fffbe6;border:1px solid #ffe58f;padding:12px;border-radius:8px;margin:8px 0;">
+          No events found for this batch.
+        </div>
+      <% else %>
+        <%= render partial: "cards", locals: { batch: @batch, rows: @rows, conflicts: @conflicts } %>
+
+        <%= button_to "Approve & Send to Database",
+          approve_all_admin_event_import_path(@batch),
+          method: :post,
+          data: { turbo: false, turbo_confirm: "Approve all proposed rows?" },
+          class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  </turbo-frame>
+</div>

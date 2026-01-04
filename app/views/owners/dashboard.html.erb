@@ -1,0 +1,229 @@
+<%  content_for :title,  "Dashboard"%>
+
+<% if owner_signed_in? %>
+  <meta data-controller="bridge--notification-token">
+<% end %>
+
+<div class="container my-5" style="max-width: 720px;">
+
+  <div class="d-flex flex-column align-items-center gap-3 mt-3 mb-5">
+    <% if @venues.any? %>
+      <%= link_to "Add an Event", new_event_path, class: "btn btn-primary w-100", style: "max-width: 300px;" %>
+    <% else %>
+      <a href="#" class="btn btn-primary w-100" style="max-width: 300px;" 
+     onclick="showVenueWarning(); return false;">
+        Add an Event
+      </a>
+    <% end %>
+
+    <script>
+      function showVenueWarning() {
+        alert("You don't own any venues yet. Add a new venue or claim an existing venue to add events.");
+      }
+    </script>
+
+    <%= link_to "Add a Venue", new_venue_request_path, class: "btn btn-primary w-100", style: "max-width: 300px;" %>
+    <%= link_to "Claim a Venue", claim_venue_requests_path, class: "btn btn-primary w-100", style: "max-width: 300px;" %>
+    <%= link_to "My Requests", owner_venue_requests_path, class: "btn btn-outline-secondary w-100", style: "max-width: 300px;" %>
+  </div>
+
+  <!-- No Venues Warning Modal -->
+  <div class="modal fade" id="noVenuesModal" tabindex="-1" aria-labelledby="noVenuesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="noVenuesModalLabel">
+            <i class="fas fa-info-circle text-primary me-2"></i>
+            Add a Venue First
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="mb-4">You don't own any venues yet. To add events, you'll need to either add a new venue or claim an existing one.</p>
+
+          <div class="d-grid gap-2">
+            <%= link_to new_venue_request_path, class: "btn btn-primary" do %>
+              <i class="fas fa-plus-circle me-2"></i>Add a New Venue
+            <% end %>
+
+            <%= link_to claim_venue_requests_path, class: "btn btn-outline-primary" do %>
+              <i class="fas fa-handshake me-2"></i>Claim an Existing Venue
+            <% end %>
+          </div>
+        </div>
+        <div class="modal-footer border-0 justify-content-center">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <% if @venues.any? %>
+    <h4 class="mb-3 text-center text-muted">Your Venues</h4>
+
+    <div class="row row-cols-1 g-3">
+      <% @venues.each do |venue| %>
+        <div class="col d-flex justify-content-center mb-3">
+          <div class="card shadow-sm" style="width: 100%; max-width: 500px;">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0"><%= venue.name %></h5>
+                <div class="d-flex gap-2">
+                  <%= link_to "View", venue_path(venue), class: "btn btn-sm btn-outline-primary" %>
+                  <%= link_to "Edit", edit_venue_path(venue), class: "btn btn-sm btn-outline-primary" %>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center text-muted mt-4">
+      <p>Your venues will apear here. You haven't added any venues yet.</p>
+    </div>
+  <% end %>
+
+  <!-- Upcoming Events -->
+  <h5 class="text-center text-muted mb-3">Upcoming Events At Your Venues</h5>
+
+  <% if @upcoming_events.any? %>
+    <div class="mx-auto" style="max-width: 500px;">
+      <% @upcoming_events.each do |event| %>
+        <div class="card mb-3 shadow-sm border-0 rounded-4" style="background-color: #ffffff;">
+          <div class="card-body text-center p-3"
+               data-controller="event-card"
+               data-event-card-url-value="<%= event_path(event) %>"
+               data-action="click->event-card#goToEvent"
+            style="cursor: pointer;">
+            <div class="d-inline-block px-3 py-1 rounded-pill bg-primary text-white fw-semibold mb-2"
+     style="font-size: 0.9rem; background: linear-gradient(90deg, #0d6efd, #4dabf7) !important;">
+              <% st = event.starts_at_local; et = event.ends_at_local %>
+              <% today_label = (st.to_date == st.time_zone.today) ? "Today" : st.strftime("%A, %b %-d") %>
+              <i class="bi bi-clock me-1"></i>
+              <%= today_label %> • 
+              <%= st.strftime("%-I:%M %p") %> - 
+              <%= et.strftime("%-I:%M %p") %>
+            </div>
+            <br>
+            <small>
+              <% if event.artist.present? %>
+                <%= link_to event.artist.username, artist_path(event.artist), 
+              class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %> - <%= link_to event.venue.name, venue_path(event.venue), class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %>
+              <% else %>
+                <span class="text-muted"><%= event.artist_name %> - <%= link_to event.venue.name, venue_path(event.venue), class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %> </span>
+              <% end %>
+            </small>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-muted text-center">No upcoming events.</p>
+  <% end %>
+
+  <!-- Past Events -->
+
+  <% if @past_events.any? %>
+    <h5 class="text-center text-muted mb-3 mt-5">Recent Events At Your Venues </h5>
+
+    <div class="mx-auto" style="max-width: 500px;">
+      <% @past_events.each do |event| %>
+        <div class="card mb-3 shadow-sm border-0 rounded-4" style="background-color: #ffffff;">
+          <div class="card-body text-center p-3"
+           data-controller="event-card"
+           data-event-card-url-value="<%= event_path(event) %>"
+           data-action="click->event-card#goToEvent"
+            style="cursor: pointer;">
+
+            <div class="d-inline-block px-3 py-1 rounded-pill bg-light text-dark fw-semibold mb-2"
+     style="font-size: 0.9rem;">
+              <% st = event.starts_at_local; et = event.ends_at_local %>
+              <i class="bi bi-clock me-1"></i>
+              <%= st.strftime("%A, %b %-d") %> • 
+              <%= st.strftime("%-I:%M %p") %> - 
+              <%= et.strftime("%-I:%M %p") %>
+            </div>
+            <br>
+            <small>
+              <% if event.artist.present? %>
+                <%= link_to event.artist.username, artist_path(event.artist),
+              class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %> - <%= link_to event.venue.name, venue_path(event.venue), class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %>
+              <% else %>
+                <span class="text-muted"><%= event.artist_name %> - <%= link_to event.venue.name, venue_path(event.venue), class: "text-decoration-none",
+              onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %></span>
+              <% end %>
+            </small>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Favorite Artists -->
+  <div class="mt-3 mb-5">
+    <h5 class="text-primary text-center mb-4">
+      <i class="fas fa-music me-2"></i> Favorite Artists
+    </h5>
+
+    <% if @favorite_artists.any? %>
+      <div class="mx-auto" style="max-width: 500px;">
+        <% @favorite_artists.each do |artist| %>
+          <%= link_to artist_path(artist), class: "text-decoration-none" do %>
+            <div class="card mb-3 shadow-sm text-center" 
+                 style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.12)'">
+              <div class="card-body d-flex flex-column align-items-center">
+                <% if artist.image.attached? %>
+                  <img src="<%= url_for(artist.image) %>" 
+                       class="rounded-circle mb-2" 
+                       style="width: 60px; height: 60px; object-fit: cover;">
+                <% else %>
+                  <i class="fas fa-user-circle fa-2x text-secondary mb-2"></i>
+                <% end %>
+                <h6 class="mb-1 text-dark"><%= artist.username %></h6>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted fst-italic text-center">You haven't followed any artists yet.</p>
+    <% end %>
+  </div>
+
+  <!-- Favorite Venues -->
+  <div class="mt-5">
+    <h5 class="text-success text-center mb-4">
+      <i class="fas fa-map-marker-alt me-2"></i> Favorite Venues
+    </h5>
+
+    <% if @favorite_venues.any? %>
+      <div class="mx-auto" style="max-width: 500px;">
+        <% @favorite_venues.each do |venue| %>
+          <%= link_to venue_path(venue), class: "text-decoration-none" do %>
+            <div class="card mb-3 shadow-sm text-center" 
+                 style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.12)'">
+              <div class="card-body">
+                <h6 class="mb-0 text-dark">
+                  <i class="fas fa-microphone-alt me-2 text-muted"></i>
+                  <%= venue.name %>
+                </h6>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-muted fst-italic text-center">You haven't followed any venues yet.</p>
+    <% end %>
+  </div>
+</div>

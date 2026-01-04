@@ -1,0 +1,3 @@
+<%= turbo_stream.replace "follow_button_#{@venue.id}" do %>
+  <%= render partial: "venues/follow_button", locals: { venue: @venue } %>
+<% end %>

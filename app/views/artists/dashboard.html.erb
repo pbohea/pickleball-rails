@@ -1,0 +1,159 @@
+<% content_for :title, "Dashboard" %>
+
+<% if artist_signed_in? %>
+  <meta data-controller="bridge--notification-token">
+<% end %>
+
+<style>
+  .dashboard-action-btn {
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 1rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+  }
+
+  .dashboard-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.4);
+    color: white;
+  }
+
+  .dashboard-action-btn i {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title-modern {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #2d3748;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .favorite-card {
+    background: white;
+    border: 2px solid #f8f9fa;
+    border-radius: 16px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .favorite-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.12);
+    border-color: #e9ecef;
+  }
+
+  .artist-image-small {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .empty-state-text {
+    color: #6c757d;
+    font-size: 0.95rem;
+    padding: 2rem 1rem;
+  }
+</style>
+
+<div class="container mb-3 pt-3" style="max-width: 500px;">
+  <div class="mb-5">
+    <div class="row g-3">
+      <div class="col-6">
+        <%= link_to artist_path(current_artist), class: "dashboard-action-btn text-decoration-none d-flex flex-column align-items-center" do %>
+          <i class="fas fa-user mb-1"></i>
+          <span style="font-size: 0.9rem;">View My Profile</span>
+        <% end %>
+      </div>
+      <div class="col-6">
+        <%= link_to promo_flyer_artist_path(current_artist), class: "dashboard-action-btn text-decoration-none d-flex flex-column align-items-center" do %>
+          <i class="fas fa-image mb-1"></i>
+          <span style="font-size: 0.9rem;">Promo Flyer</span>
+        <% end %>
+      </div>
+      <div class="col-6">
+        <%= link_to new_event_path, class: "dashboard-action-btn text-decoration-none d-flex flex-column align-items-center" do %>
+          <i class="fas fa-plus-circle mb-1"></i>
+          <span style="font-size: 0.9rem;">Add Event</span>
+        <% end %>
+      </div>
+      <div class="col-6">
+        <%= link_to artist_venue_requests_path, class: "dashboard-action-btn text-decoration-none d-flex flex-column align-items-center" do %>
+          <i class="fas fa-envelope mb-1"></i>
+          <span style="font-size: 0.9rem;">My Requests</span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%= render partial: "shared/event_cards" %>
+  <!-- Favorite Artists -->
+  <div class="mt-5 mb-5">
+    <h5 class="section-title-modern">
+      <i class="fas fa-music"></i>
+      <span>Favorite Artists</span>
+    </h5>
+
+    <% if @favorite_artists.any? %>
+      <div class="mx-auto" style="max-width: 500px;">
+        <% @favorite_artists.each do |artist| %>
+          <%= link_to artist_path(artist), class: "text-decoration-none d-block mb-3" do %>
+            <div class="favorite-card d-flex align-items-center">
+              <% if artist.image.attached? %>
+                <img src="<%= url_for(artist.image) %>"
+                     class="artist-image-small me-3">
+              <% else %>
+                <div class="artist-image-small me-3 d-flex align-items-center justify-content-center"
+                     style="background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);">
+                  <i class="fas fa-user fa-2x text-secondary"></i>
+                </div>
+              <% end %>
+              <h6 class="mb-0 text-dark fw-semibold"><%= artist.username %></h6>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="empty-state-text text-center">You haven't followed any artists yet.</p>
+    <% end %>
+  </div>
+
+  <!-- Favorite Venues -->
+  <div class="mt-5">
+    <h5 class="section-title-modern">
+      <i class="fas fa-map-marker-alt"></i>
+      <span>Favorite Venues</span>
+    </h5>
+
+    <% if @favorite_venues.any? %>
+      <div class="mx-auto" style="max-width: 500px;">
+        <% @favorite_venues.each do |venue| %>
+          <%= link_to venue_path(venue), class: "text-decoration-none d-block mb-3" do %>
+            <div class="favorite-card d-flex align-items-center">
+              <div class="me-3 d-flex align-items-center justify-content-center"
+                   style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);">
+                <i class="fas fa-microphone-alt text-white fa-lg"></i>
+              </div>
+              <h6 class="mb-0 text-dark fw-semibold"><%= venue.name %></h6>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="empty-state-text text-center">You haven't followed any venues yet.</p>
+    <% end %>
+  </div>
+</div>

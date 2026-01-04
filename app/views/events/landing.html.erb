@@ -1,0 +1,111 @@
+<% content_for :title, "Find Live Music Near You" %>
+
+<div class="min-vh-100 bg-light">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-6 col-md-8 col-sm-10">
+
+        <!-- Header Section -->
+        <div class="text-center mb-4">
+          <div class="mb-3">
+            <i class="fas fa-music fa-4x text-primary"></i>
+          </div>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-white p-4 rounded-4 shadow-sm">
+
+          <%= form_with url: events_path, method: :get, local: true,
+                        data: {
+                          controller: "location-search",
+                          action: "submit->location-search#validateLocation"
+                        } do |f| %>
+
+            <!-- Location Section -->
+            <div class="mb-4">
+              <h6 class="fw-semibold mb-3 d-flex align-items-center">
+                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                Location
+              </h6>
+
+              <!-- Address Option -->
+              <div class="form-check mb-3 p-3 rounded-3 border border-light-subtle">
+                <%= radio_button_tag :location_type, "address", true,
+                      class: "form-check-input",
+                      data: { "location-search-target": "addressRadio" } %>
+                <%= label_tag :location_type_address, class: "form-check-label fw-medium ms-2" do %>
+                  <i class="fas fa-search me-2"></i>Enter address
+                <% end %>
+                
+                <%= f.text_field :address,
+                      placeholder: "Enter address or ZIP code",
+                      class: "form-control mt-2 border-0 bg-light",
+                      required: true,
+                      data: { "location-search-target": "addressInput" } %>
+              </div>
+
+              <!-- Current Location Option -->
+              <div class="form-check p-3 rounded-3 border border-light-subtle">
+                <%= radio_button_tag :location_type, "current", false,
+                      class: "form-check-input",
+                      data: { "location-search-target": "currentRadio", action: "change->location-search#getCurrentLocation" } %>
+                <%= label_tag :location_type_current, class: "form-check-label fw-medium ms-2" do %>
+                  <i class="fas fa-crosshairs me-2"></i>Use my current location
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Filters Section -->
+            <div class="row g-3 mb-4">
+              <!-- Search Radius -->
+              <div class="col-sm-6">
+                <h6 class="fw-semibold mb-2 d-flex align-items-center">
+                  <i class="fas fa-expand-arrows-alt me-2 text-success"></i>
+                  <span class="small">Search Radius</span>
+                </h6>
+                <%= f.select :radius,
+                      options_for_select([
+                        ['1 mi', 1], ['5 mi', 5], ['10 mi', 10]
+                      ], 1),
+                      {}, class: "form-select border-0 bg-light" %>
+              </div>
+
+              <!-- Date Range -->
+              <div class="col-sm-6">
+                <h6 class="fw-semibold mb-2 d-flex align-items-center">
+                  <i class="fas fa-calendar-alt me-2 text-warning"></i>
+                  <span class="small">Time Period</span>
+                </h6>
+                <%= f.select :date_range,
+                      options_for_select([
+                        ["Any Date", ""],
+                        ["Today", "today"],
+                        ["Next 7 Days", "next_7_days"]
+                      ]),
+                      {}, class: "form-select border-0 bg-light" %>
+              </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="location-error" class="alert alert-danger d-none mb-3 border-0 rounded-3" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              Please enter an address or use your current location before searching.
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg shadow-sm" style="border-radius: 50px;">
+                <i class="fas fa-search me-2"></i>
+                Search Events
+              </button>
+            </div>
+
+            <%= f.hidden_field :lat, data: { "location-search-target": "latInput" } %>
+            <%= f.hidden_field :lng, data: { "location-search-target": "lngInput" } %>
+          <% end %>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

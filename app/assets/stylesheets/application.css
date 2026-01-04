@@ -1,0 +1,55 @@
+/*
+ * This is a manifest file that'll be compiled into application.css.
+ *
+ * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
+ * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
+ * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
+ * depending on specificity.
+ *
+ * Consider organizing styles into separate files for maintainability.
+ */
+/* app/assets/stylesheets/application.scss */
+
+body {
+  font-family: 'Inter', serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair', sans-serif;
+}
+
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.07); }
+  100% { transform: scale(1); }
+}
+
+.btn-follow-animate {
+  animation: pop 150ms ease-in-out;
+}
+
+.uniform-btn {
+  border-radius: 20px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+}
+
+.stacked-btn {
+  flex-direction: column;        /* stack logo above label */
+}
+
+.logo-icon { transition: transform .25s ease; }
+.logo-icon.spin { animation: spin 1s linear infinite; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Optional: subtle label fade during loading */
+.loading-label { opacity: .7; }

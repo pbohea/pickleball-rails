@@ -1,0 +1,4 @@
+# Serve on a different port so it doesn't clash with dev
+web: bundle exec rails server -e production -p 3000
+# Your SolidQueue worker
+worker: bundle exec ruby bin/jobs

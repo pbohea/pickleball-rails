@@ -1,0 +1,12 @@
+<% if resource.errors.any? %>
+  <div id="error_explanation" class="error-box bg-danger text-white rounded-3 shadow-sm p-3 mb-4">
+    <h4 class="fw-bold mb-3">
+      Please fix the following <%= pluralize(resource.errors.count, "error") %>:
+    </h4>
+    <ul class="mb-0">
+      <% resource.errors.full_messages.each do |message| %>
+        <li><i class="fas fa-exclamation-circle me-1 text-danger"></i><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

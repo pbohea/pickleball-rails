@@ -1,0 +1,329 @@
+<!--views/admin/_venue_request_card.html.erb-->
+<%# One accordion item per request. Keeps all existing forms/URLs/fields intact. %>
+<%# Enhanced venue request card with all fields visible and editable %>
+<% header_id = "heading-#{idx}" %>
+<% collapse_id = "collapse-#{idx}" %>
+
+<div class="accordion-item border-0 shadow-sm mb-3">
+  <h2 class="accordion-header" id="<%= header_id %>">
+    <button class="accordion-button d-flex align-items-center gap-2" type="button"
+            data-bs-toggle="collapse" data-bs-target="#<%= collapse_id %>"
+            aria-expanded="<%= idx.zero? %>" aria-controls="<%= collapse_id %>">
+      <span class="fw-semibold"><%= request.name %></span>
+      <% if request.ownership_claim? %>
+        <span class="badge text-bg-warning"><i class="fas fa-crown me-1"></i>Ownership Claim</span>
+      <% end %>
+      <% if request.existing_venue_claim? %>
+        <span class="badge text-bg-info"><i class="fas fa-handshake me-1"></i>Venue Claim</span>
+      <% else %>
+        <span class="badge text-bg-primary"><i class="fas fa-plus me-1"></i>New Venue</span>
+      <% end %>
+      <span class="ms-auto small text-muted">
+        submitted <%= time_ago_in_words(request.created_at) %> ago
+      </span>
+    </button>
+  </h2>
+
+  <div id="<%= collapse_id %>" class="accordion-collapse collapse <%= idx.zero? ? 'show' : '' %>"
+       aria-labelledby="<%= header_id %>" data-bs-parent="#pendingRequestsAccordion">
+    <div class="accordion-body">
+      <div class="row g-3">
+        <!-- Left: Complete request details -->
+        <div class="col-md-8">
+          <div class="card border-0 bg-light">
+            <div class="card-header bg-secondary-subtle">
+              <strong><i class="fas fa-info-circle me-1"></i>Complete Request Information</strong>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <!-- Basic Info -->
+                <div class="col-md-6">
+                  <h6 class="text-primary mb-2"><i class="fas fa-building me-1"></i>Venue Details</h6>
+                  <div class="mb-2">
+                    <strong>Name:</strong> <%= request.name %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Category:</strong> <%= request.category.humanize %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Website:</strong> 
+                    <% if request.website.present? %>
+                      <%= link_to request.website, request.website, target: "_blank", rel: "noopener", class: "text-decoration-none" %>
+                    <% else %>
+                      <span class="text-muted">Not provided</span>
+                    <% end %>
+                  </div>
+                </div>
+
+                <!-- Address Info -->
+                <div class="col-md-6">
+                  <h6 class="text-success mb-2"><i class="fas fa-map-marker-alt me-1"></i>Address</h6>
+                  <div class="mb-2">
+                    <strong>Street:</strong> <%= request.street_address %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>City:</strong> <%= request.city %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>State:</strong> <%= request.state %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>ZIP Code:</strong> <%= request.zip_code %>
+                  </div>
+                  <div class="small text-muted">
+                    <strong>Full Address:</strong> <%= request.full_address %>
+                  </div>
+                </div>
+
+                <!-- Requester Info -->
+                <div class="col-md-6">
+                  <h6 class="text-warning mb-2"><i class="fas fa-user me-1"></i>Requester Information</h6>
+                  <div class="mb-2">
+                    <strong>Type:</strong> <%= request.requester_type.humanize %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>ID:</strong> #<%= request.requester_id %>
+                  </div>
+                  <%# if request.ownership_claim? && request.owner_phone.present? %>
+<!--                    <div class="mb-2">
+                      <strong>Phone:</strong> <%#= request.owner_phone %>
+                    </div>
+                  <%# end %>-->
+                </div>
+
+                <!-- Request Meta -->
+                <div class="col-md-6">
+                  <h6 class="text-info mb-2"><i class="fas fa-clock me-1"></i>Request Details</h6>
+                  <div class="mb-2">
+                    <strong>Request Type:</strong> <%= request.request_type.humanize.gsub('_', ' ') %>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Ownership Claim:</strong> 
+                    <span class="badge bg-<%= request.ownership_claim? ? 'warning' : 'secondary' %>">
+                      <%= request.ownership_claim? ? 'Yes' : 'No' %>
+                    </span>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Status:</strong> 
+                    <span class="badge bg-primary"><%= request.status.humanize %></span>
+                  </div>
+                  <div class="mb-2">
+                    <strong>Created:</strong> <%= request.created_at.strftime('%B %d, %Y at %I:%M %p') %>
+                  </div>
+                  <% if request.updated_at != request.created_at %>
+                    <div class="mb-2">
+                      <strong>Updated:</strong> <%= request.updated_at.strftime('%B %d, %Y at %I:%M %p') %>
+                    </div>
+                  <% end %>
+                </div>
+
+                <!-- Existing Venue Info (if claim) -->
+                <% if request.existing_venue_claim? && request.existing_venue %>
+                  <div class="col-12">
+                    <h6 class="text-dark mb-2"><i class="fas fa-link me-1"></i>Existing Venue Being Claimed</h6>
+                    <div class="alert alert-info">
+                      <div class="mb-2">
+                        <strong>Venue Name:</strong> <%= request.existing_venue.name %>
+                      </div>
+                      <div class="mb-2">
+                        <strong>Current Address:</strong> <%= request.existing_venue.full_address %>
+                      </div>
+                      <div class="mb-2">
+                        <strong>Current Owner:</strong> 
+                        <% if request.existing_venue.owner %>
+                          <%= request.existing_venue.owner.name || "Owner ##{request.existing_venue.owner_id}" %>
+                        <% else %>
+                          <span class="text-muted">Unowned</span>
+                        <% end %>
+                      </div>
+                      <div class="mb-0">
+                        <strong>Current Coordinates:</strong> 
+                        <% if request.existing_venue.latitude && request.existing_venue.longitude %>
+                          <%= request.existing_venue.latitude %>, <%= request.existing_venue.longitude %>
+                        <% else %>
+                          <span class="text-muted">Not geocoded</span>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+
+                <!-- Notes -->
+                <% if request.notes.present? %>
+                  <div class="col-12">
+                    <h6 class="text-secondary mb-2"><i class="fas fa-sticky-note me-1"></i>Notes</h6>
+                    <div class="alert alert-light">
+                      <%= simple_format(request.notes) %>
+                    </div>
+                  </div>
+                <% end %>
+
+                <!-- Utility Bill -->
+                <% if request.utility_bill.attached? %>
+                  <div class="col-12">
+                    <h6 class="text-primary mb-2"><i class="fas fa-file-alt me-1"></i>Verification Document</h6>
+                    <%= link_to "View Utility Bill", url_for(request.utility_bill),
+                                target: "_blank",
+                                class: "btn btn-outline-primary btn-sm" %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Action forms with editable fields -->
+        <div class="col-md-4">
+          <% if request.existing_venue_claim? && request.existing_venue %>
+            <!-- Claim: Edit venue details + coordinates -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-info-subtle">
+                <strong><i class="fas fa-edit me-1"></i>Edit & Approve Claim</strong>
+              </div>
+              <div class="card-body">
+                <%= form_with url: update_coordinates_admin_venue_request_path(request), method: :patch, local: true do |f| %>
+                  <!-- Editable venue fields -->
+                  <div class="mb-3">
+                    <h6 class="text-muted mb-2">Edit Venue Details (Optional)</h6>
+                    <div class="mb-2">
+                      <%= f.label :venue_name, "Venue Name", class: "form-label form-label-sm" %>
+                      <%= f.text_field :venue_name, value: request.existing_venue.name, class: "form-control form-control-sm" %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :venue_website, "Website", class: "form-label form-label-sm" %>
+                      <%= f.url_field :venue_website, value: request.existing_venue.website, class: "form-control form-control-sm" %>
+                    </div>
+                  </div>
+
+                  <!-- Coordinates -->
+                  <div class="mb-3">
+                    <h6 class="text-muted mb-2">Coordinates</h6>
+                    <div class="mb-2">
+                      <%= f.label :latitude, "Latitude", class: "form-label form-label-sm" %>
+                      <%= f.text_field :latitude, value: request.existing_venue.latitude, class: "form-control form-control-sm" %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :longitude, "Longitude", class: "form-label form-label-sm" %>
+                      <%= f.text_field :longitude, value: request.existing_venue.longitude, class: "form-control form-control-sm" %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :time_zone, "Time Zone", class: "form-label form-label-sm" %>
+                      <%= select_tag :time_zone,
+                            options_for_select(
+                              ActiveSupport::TimeZone.all
+                                .select { |z| z.tzinfo.name.start_with?("America/") || z.tzinfo.name == "Pacific/Honolulu" }
+                                .map { |z| ["#{z.tzinfo.name} (#{z.formatted_offset})", z.tzinfo.name] },
+                              request.existing_venue&.time_zone
+                            ),
+                            include_blank: "Select time zone…",
+                            class: "form-select form-select-sm",
+                            required: true %>
+                    </div>
+                  </div>
+
+                  <%= f.submit "Update & Approve Claim", class: "btn btn-success btn-sm w-100" %>
+                <% end %>
+
+                <!-- Reject form -->
+                <div class="mt-2">
+                  <%= form_with url: reject_admin_venue_request_path(request), method: :patch, local: true do |rf| %>
+                    <%= rf.text_area :notes, class: "form-control form-control-sm mb-2", placeholder: "Rejection reason", rows: 2 %>
+                    <%= rf.submit "Reject", class: "btn btn-danger btn-sm w-100" %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% else %>
+            <!-- New venue: Edit all fields before creating -->
+            <div class="card border-0 shadow-sm mb-3">
+              <div class="card-header bg-primary-subtle">
+                <strong><i class="fas fa-plus-circle me-1"></i>Edit & Create Venue</strong>
+              </div>
+              <div class="card-body">
+                <%= form_with url: update_coordinates_admin_venue_request_path(request), method: :patch, local: true do |f| %>
+                  <!-- Editable venue details -->
+                  <div class="mb-3">
+                    <h6 class="text-muted mb-2">Venue Details</h6>
+                    <div class="mb-2">
+                      <%= f.label :venue_name, "Name", class: "form-label form-label-sm" %>
+                      <%= f.text_field :venue_name, value: request.name, class: "form-control form-control-sm", required: true %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :venue_category, "Category", class: "form-label form-label-sm" %>
+                      <%= f.select :venue_category, 
+                            options_for_select(Venue::CATEGORIES.map { |cat| [cat, cat] }, request.category),
+                            { include_blank: "Select category" },
+                            { class: "form-select form-select-sm", required: true } %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :venue_website, "Website", class: "form-label form-label-sm" %>
+                      <%= f.url_field :venue_website, value: request.website, class: "form-control form-control-sm" %>
+                    </div>
+                  </div>
+
+                  <!-- Editable address -->
+                  <div class="mb-3">
+                    <h6 class="text-muted mb-2">Address</h6>
+                    <div class="mb-2">
+                      <%= f.label :venue_street_address, "Street", class: "form-label form-label-sm" %>
+                      <%= f.text_field :venue_street_address, value: request.street_address, class: "form-control form-control-sm", required: true %>
+                    </div>
+                    <div class="row g-2">
+                      <div class="col-8">
+                        <%= f.label :venue_city, "City", class: "form-label form-label-sm" %>
+                        <%= f.text_field :venue_city, value: request.city, class: "form-control form-control-sm", required: true %>
+                      </div>
+                      <div class="col-4">
+                        <%= f.label :venue_state, "State", class: "form-label form-label-sm" %>
+                        <%= f.text_field :venue_state, value: request.state, class: "form-control form-control-sm", required: true %>
+                      </div>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :venue_zip_code, "ZIP", class: "form-label form-label-sm" %>
+                      <%= f.text_field :venue_zip_code, value: request.zip_code, class: "form-control form-control-sm", required: true %>
+                    </div>
+                  </div>
+
+                  <!-- Coordinates -->
+                  <div class="mb-3">
+                    <h6 class="text-muted mb-2">Coordinates</h6>
+                    <div class="mb-2">
+                      <%= f.label :latitude, "Latitude", class: "form-label form-label-sm" %>
+                      <%= f.text_field :latitude, class: "form-control form-control-sm", placeholder: "Enter latitude", required: true %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :longitude, "Longitude", class: "form-label form-label-sm" %>
+                      <%= f.text_field :longitude, class: "form-control form-control-sm", placeholder: "Enter longitude", required: true %>
+                    </div>
+                    <div class="mb-2">
+                      <%= f.label :time_zone, "Time Zone", class: "form-label form-label-sm" %>
+                      <%= select_tag :time_zone,
+                            options_for_select(
+                              ActiveSupport::TimeZone.all
+                                .select { |z| z.tzinfo.name.start_with?("America/") || z.tzinfo.name == "Pacific/Honolulu" }
+                                .map { |z| ["#{z.tzinfo.name} (#{z.formatted_offset})", z.tzinfo.name] }
+                            ),
+                            include_blank: "Select time zone…",
+                            class: "form-select form-select-sm",
+                            required: true %>
+                    </div>
+                  </div>
+
+                  <%= f.submit "Create Venue", class: "btn btn-primary btn-sm w-100" %>
+                <% end %>
+
+                <!-- Reject form -->
+                <div class="mt-2">
+                  <%= form_with url: reject_admin_venue_request_path(request), method: :patch, local: true do |rf| %>
+                    <%= rf.text_area :notes, class: "form-control form-control-sm mb-2", placeholder: "Rejection reason", rows: 2 %>
+                    <%= rf.submit "Reject", class: "btn btn-danger btn-sm w-100" %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

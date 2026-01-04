@@ -1,0 +1,301 @@
+<% content_for :title, "Metrics" %>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h1 class="mb-0">Platform Metrics</h1>
+      <small class="text-muted">View statistics and rankings across the platform</small>
+    </div>
+    <%= link_to "← Back to Dashboard", admin_dashboard_path, class: "btn btn-outline-secondary" %>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <%= form_with url: admin_metrics_path, method: :get, local: true, class: "row g-3 align-items-end" do |f| %>
+        <div class="col-md-4">
+          <label class="form-label">Time Range</label>
+          <%= select_tag :time_range, 
+                         options_for_select([
+                           ['All Time', 'all_time'],
+                           ['Last Week', 'last_week'],
+                           ['Last Month', 'last_month']
+                         ], @time_range),
+                         class: 'form-select' %>
+        </div>
+        
+        <div class="col-md-4">
+          <label class="form-label">City (for venue rankings)</label>
+          <%= select_tag :city,
+                         options_for_select([['Everywhere', 'everywhere']] + @cities.map { |c| [c, c] }, @city_filter),
+                         class: 'form-select' %>
+        </div>
+        
+        <div class="col-md-4">
+          <%= f.submit "Apply Filters", class: "btn btn-primary w-100" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Overview Stats -->
+  <div class="row mb-4">
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @users_count %></h3>
+          <small class="text-muted">Users</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @artists_count %></h3>
+          <small class="text-muted">Artists</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @owners_count %></h3>
+          <small class="text-muted">Owners</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @venues_count %></h3>
+          <small class="text-muted">Venues</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @upcoming_events_count %></h3>
+          <small class="text-muted">Upcoming Events</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="mb-0"><%= @total_events_count %></h3>
+          <small class="text-muted">Total Events</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs for Rankings -->
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="venues-tab" data-bs-toggle="tab" data-bs-target="#venues" type="button" role="tab">
+        Venues
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="artists-tab" data-bs-toggle="tab" data-bs-target="#artists" type="button" role="tab">
+        Artists
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Venues Tab -->
+    <div class="tab-pane fade show active" id="venues" role="tabpanel">
+      <div class="row">
+        <!-- Venues by Event Count -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Top Venues by Event Count</h5>
+              <small class="text-muted">
+                <%= @city_filter == 'everywhere' ? 'All Cities' : @city_filter %>
+              </small>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Venue</th>
+                      <th>City</th>
+                      <th class="text-end">Events</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @venues_by_events.each_with_index do |venue, index| %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td>
+                          <%= link_to venue.name, venue_path(venue), class: "text-decoration-none" %>
+                        </td>
+                        <td><%= venue.city %></td>
+                        <td class="text-end">
+                          <span class="badge bg-primary"><%= venue.event_count %></span>
+                        </td>
+                      </tr>
+                    <% end %>
+                    <% if @venues_by_events.empty? %>
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                          No venues found
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Venues by Follower Count -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Top Venues by Follower Count</h5>
+              <small class="text-muted">
+                <%= @city_filter == 'everywhere' ? 'All Cities' : @city_filter %>
+              </small>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Venue</th>
+                      <th>City</th>
+                      <th class="text-end">Followers</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @venues_by_followers.each_with_index do |venue, index| %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td>
+                          <%= link_to venue.name, venue_path(venue), class: "text-decoration-none" %>
+                        </td>
+                        <td><%= venue.city %></td>
+                        <td class="text-end">
+                          <span class="badge bg-success"><%= venue.follower_count %></span>
+                        </td>
+                      </tr>
+                    <% end %>
+                    <% if @venues_by_followers.empty? %>
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                          No venues found
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Artists Tab -->
+    <div class="tab-pane fade" id="artists" role="tabpanel">
+      <div class="row">
+        <!-- Artists by Event Count -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Top Artists by Event Count</h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Artist</th>
+                      <th>Genre</th>
+                      <th class="text-end">Events</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @artists_by_events.each_with_index do |artist, index| %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td>
+                          <%= link_to artist.username, artist_path(artist), class: "text-decoration-none" %>
+                        </td>
+                        <td><%= artist.genre %></td>
+                        <td class="text-end">
+                          <span class="badge bg-primary"><%= artist.event_count %></span>
+                        </td>
+                      </tr>
+                    <% end %>
+                    <% if @artists_by_events.empty? %>
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                          No artists found
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Artists by Follower Count -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Top Artists by Follower Count</h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>#</th>
+                      <th>Artist</th>
+                      <th>Genre</th>
+                      <th class="text-end">Followers</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% @artists_by_followers.each_with_index do |artist, index| %>
+                      <tr>
+                        <td><%= index + 1 %></td>
+                        <td>
+                          <%= link_to artist.username, artist_path(artist), class: "text-decoration-none" %>
+                        </td>
+                        <td><%= artist.genre %></td>
+                        <td class="text-end">
+                          <span class="badge bg-success"><%= artist.follower_count %></span>
+                        </td>
+                      </tr>
+                    <% end %>
+                    <% if @artists_by_followers.empty? %>
+                      <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                          No artists found
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

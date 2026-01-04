@@ -1,0 +1,158 @@
+<nav id="main-navbar" class="navbar d-hotwire-native-none bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">Pickleball</a>
+
+    <!-- Offcanvas Toggler -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#accountMenu" aria-controls="accountMenu" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </div>
+</nav>
+
+<% signed_in = owner_signed_in? || artist_signed_in? || user_signed_in? || promoter_signed_in? %>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="accountMenu" data-turbo="false" aria-labelledby="accountMenuLabel" data-bs-backdrop="true" data-bs-scroll="false">
+  <div class="d-flex flex-column justify-content-between" style="height: 100dvh; overflow: hidden;">
+
+    <!-- Top Section -->
+    <div class="container py-4">
+      <% if signed_in %>
+        <div class="d-grid gap-2">
+
+          <% if owner_signed_in? %>
+            <% if owner_signed_in? && is_admin_email?(current_owner.email) %>
+              <%= link_to "Admin Dashboard", admin_dashboard_path, class: "btn btn-outline-warning", data: { turbo: false } %>
+            <% end %>
+            <%= link_to "Dashboard", owner_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+            <%= link_to "Edit Profile", edit_owner_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+            <div>
+              <%= button_to "Sign Out", destroy_owner_session_path, 
+                  method: :delete, 
+                  class: "btn btn-outline-danger w-100",
+                  data: { turbo: false } %>
+            </div>
+
+          <% elsif artist_signed_in? %>
+            <% if artist_signed_in? && is_admin_email?(current_artist.email) %>
+              <%= link_to "Admin Dashboard", admin_dashboard_path, class: "btn btn-outline-warning", data: { turbo: false } %>
+            <% end %>
+            <%= link_to "Dashboard", artist_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+            <%= link_to "Edit Profile", edit_artist_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+            <div>
+              <%= button_to "Sign Out", destroy_artist_session_path, 
+                  method: :delete, 
+                  class: "btn btn-outline-danger w-100",
+                  data: { turbo: false } %>
+            </div>
+          <% elsif user_signed_in? %>
+            <% if user_signed_in? && is_admin_email?(current_user.email) %>
+              <%= link_to "Admin Dashboard", admin_dashboard_path, class: "btn btn-outline-warning", data: { turbo: false } %>
+            <% end %>
+            <%= link_to "Dashboard", user_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+            <%= link_to "Edit Profile", edit_user_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+            <div>
+              <%= button_to "Sign Out", destroy_user_session_path, 
+                  method: :delete, 
+                  class: "btn btn-outline-danger w-100",
+                  data: { turbo: false } %>
+            </div>
+          <% elsif promoter_signed_in? %>
+
+            <%= link_to "Dashboard", promoter_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+            <%= link_to "Edit Profile", edit_promoter_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+            <div>
+              <%= button_to "Sign Out", destroy_promoter_session_path, 
+                  method: :delete, 
+                  class: "btn btn-outline-danger w-100",
+                  data: { turbo: false } %>
+            </div>
+          <% end %>
+
+        </div>
+      <% else %>
+        <!-- Main view when not signed in -->
+        <div id="mainMenu" class="d-grid gap-2">
+          <button class="btn btn-outline-primary" onclick="showSignInOptions()">Sign In</button>
+          <button class="btn btn-outline-secondary" onclick="showSignUpOptions()">Sign Up</button>
+        </div>
+
+        <!-- Sign In options (hidden by default) -->
+        <div id="signInOptions" class="d-none">
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-sm btn-link p-0 me-2" onclick="showMainMenu()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+              </svg>
+            </button>
+            <h5 class="mb-0">Sign In As</h5>
+          </div>
+          <div class="d-grid gap-2">
+            <%= link_to "User", new_user_session_path, class: "btn btn-outline-primary w-100", data: { turbo: false } %>
+            <%= link_to "Owner", new_owner_session_path, class: "btn btn-outline-success w-100", data: { turbo: false } %>
+            <%= link_to "Artist", new_artist_session_path, class: "btn btn-outline-info w-100", data: { turbo: false } %>
+            <%= link_to "Promoter / Booker", new_promoter_session_path, class: "btn btn-outline-secondary w-100", data: { turbo: false } %>
+
+          </div>
+        </div>
+
+        <!-- Sign Up options (hidden by default) -->
+        <div id="signUpOptions" class="d-none">
+          <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-sm btn-link p-0 me-2" onclick="showMainMenu()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+              </svg>
+            </button>
+            <h5 class="mb-0">Sign Up As</h5>
+          </div>
+          <div class="d-grid gap-2">
+            <%= link_to "User", new_user_registration_path, class: "btn btn-outline-primary w-100", data: { turbo: false } %>
+            <%= link_to "Owner", new_owner_registration_path, class: "btn btn-outline-success w-100", data: { turbo: false } %>
+            <%= link_to "Artist", new_artist_registration_path, class: "btn btn-outline-info w-100", data: { turbo: false } %>
+            <%= link_to "Promoter / Booker", new_promoter_registration_path, class: "btn btn-outline-secondary w-100", data: { turbo: false } %>
+
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="text-center py-3">
+      <%= link_to "About", about_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+      <span class="text-muted mx-2">|</span>
+      <%= link_to "Privacy", privacy_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+      <span class="text-muted mx-2">|</span>
+      <%= link_to "Feedback", feedback_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showSignInOptions() {
+    document.getElementById('mainMenu').classList.add('d-none');
+    document.getElementById('signInOptions').classList.remove('d-none');
+    document.getElementById('signUpOptions').classList.add('d-none');
+  }
+
+  function showSignUpOptions() {
+    document.getElementById('mainMenu').classList.add('d-none');
+    document.getElementById('signUpOptions').classList.remove('d-none');
+    document.getElementById('signInOptions').classList.add('d-none');
+  }
+
+  function showMainMenu() {
+    document.getElementById('mainMenu').classList.remove('d-none');
+    document.getElementById('signInOptions').classList.add('d-none');
+    document.getElementById('signUpOptions').classList.add('d-none');
+  }
+
+  // Reset to main menu when offcanvas is hidden
+  document.addEventListener('DOMContentLoaded', function() {
+    const offcanvasEl = document.getElementById('accountMenu');
+    if (offcanvasEl) {
+      offcanvasEl.addEventListener('hidden.bs.offcanvas', function () {
+        showMainMenu();
+      });
+    }
+  });
+</script>

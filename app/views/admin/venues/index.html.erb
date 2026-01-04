@@ -1,0 +1,87 @@
+<!-- app/views/admin/venues/index.html.erb -->
+<div class="container pt-4" style="max-width: 1100px;">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Venues</h2>
+    <%= link_to "Back to Admin", admin_dashboard_path, class: "btn btn-secondary" %>
+ </div>
+
+  <!-- Filters -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <%= form_with url: admin_venues_path, method: :get, local: true, class: "row g-2" do %>
+        <div class="col-md-3">
+          <label class="form-label">Ownership</label>
+          <%= select_tag :owned,
+                options_for_select([["All", "all"], ["Owned", "owned"], ["Unowned", "unowned"]], @owned_filter),
+                class: "form-select" %>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Search</label>
+          <%= text_field_tag :q, @q, class: "form-control", placeholder: "Name, city, state, zip, website..." %>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <%= submit_tag "Filter", class: "btn btn-primary me-2" %>
+          <%= link_to "Reset", admin_venues_path, class: "btn btn-outline-secondary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Owner</th>
+          <th>City</th>
+          <th>State</th>
+          <th>Website</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @venues.each do |v| %>
+          <tr>
+            <td>
+              <div class="fw-semibold"><%= link_to v.name, venue_path(v), target: "_blank", rel: "noopener" %></div>
+              <div class="text-muted small"><code><%= v.slug %></code></div>
+            </td>
+            <td>
+              <% if v.owner %>
+                <div class="text-muted small"><%= v.owner.email %></div>
+              <% else %>
+                <span class="badge bg-secondary">Unowned</span>
+              <% end %>
+            </td>
+            <td><%= v.city %></td>
+            <td><%= v.state %></td>
+            <td>
+              <% if v.website.present? %>
+                <a href="<%= v.website %>" target="_blank" rel="noopener" class="text-decoration-none">
+                  <%= URI(v.website).host rescue v.website %>
+                </a>
+              <% end %>
+            </td>
+            <td class="text-end">
+              <%= link_to "Edit Owner", edit_owner_admin_venue_path(v), class: "btn btn-sm btn-outline-primary" %>
+              <% if v.owner_id.present? %>
+                <%= button_to "Remove Owner",
+                      remove_owner_admin_venue_path(v),
+                      method: :delete,
+                      form: { data: { turbo_confirm: "Remove owner from #{v.name}?" } },
+                      class: "btn btn-sm btn-outline-danger ms-1" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <% if @venues.respond_to?(:current_page) %>
+    <div class="d-flex justify-content-center mt-3">
+      <%= paginate @venues %>
+    </div>
+  <% end %>
+</div>

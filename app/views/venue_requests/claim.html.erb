@@ -1,0 +1,59 @@
+<div class="container pt-4" style="max-width: 600px;">
+  <%= form_with url: venue_requests_path, method: :post, local: true, multipart: true, data: { controller: "safe-submit", turbo: false } do |f| %>
+    <%= hidden_field_tag :owner_id, current_owner.id %>
+    <%= hidden_field_tag :request_type, 'existing_venue_claim' %>
+
+    <div data-controller="venue-autocomplete">
+      <%= label_tag "venue_search", "Search for Your Venue", class: "form-label" %>
+      <input type="text" 
+             name="venue_search" 
+             id="venue_search" 
+             value="" 
+             placeholder="Start typing venue name..." 
+             class="form-control" 
+             data-action="input->venue-autocomplete#search" 
+      data-venue-autocomplete-target="input">
+
+      <ul class="list-group mt-1" data-venue-autocomplete-target="results"></ul>
+
+      <input type="hidden" name="existing_venue_slug" id="existing_venue_slug" data-venue-autocomplete-target="hidden">
+
+      <div class="border border-info rounded p-3 bg-info-subtle mt-3 d-none" data-venue-autocomplete-target="details">
+        <h5>Does this look right?</h5>
+        <p><strong>Name:</strong> <span data-venue-autocomplete-target="name"></span></p>
+        <p><strong>Address:</strong> <span data-venue-autocomplete-target="address"></span></p>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input" 
+                 type="checkbox" 
+                 id="venue_verification" 
+                 name="venue_verification" 
+                 value="1"
+                 data-venue-autocomplete-target="verification"
+                 data-action="change->venue-autocomplete#toggleSubmit">
+          <label class="form-check-label" for="venue_verification">
+            <strong>Yes, this is my venue and the information is correct</strong>
+          </label>
+        </div>
+
+        <!-- Use proper nested parameter names for venue_request -->
+        <!--        <div class="mb-3 mt-3">-->
+        <%#= label_tag "venue_request[owner_phone]", "Phone Number", class: "form-label" %>
+        <%#= telephone_field_tag "venue_request[owner_phone]", "", class: "form-control", required: true %>
+        <!--        </div>-->
+
+        <div class="mb-3">
+          <%= label_tag "venue_request[utility_bill]", "Upload a utility bill, liquor license, lease, deed, or other document to prove ownership. Redact any sensitive information. We will discard this file once your request is approved.", class: "form-label" %>
+          <%= file_field_tag "venue_request[utility_bill]", class: "form-control", required: true %>
+        </div>
+      </div>
+
+      <input type="submit"
+         value="Request to Claim Venue"
+         class="btn btn-success mt-3"
+         disabled
+         data-venue-autocomplete-target="submitButton"
+         data-safe-submit-target="button">
+    </div>
+  <% end %>
+</div>

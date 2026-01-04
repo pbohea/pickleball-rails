@@ -1,0 +1,17 @@
+<!-- app/views/venue_approval_mailer/venue_request_rejected.html.erb -->
+<p>Hi <%= @owner&.email ||
+            @artist&.username ||
+            @promoter&.email ||
+            @recipient&.try(:username) ||
+            @recipient&.try(:email) ||
+            "there" %>,</p>
+
+<p>We reviewed your venue request for <strong><%= @venue_request.name %></strong> and unfortunately had to reject it.</p>
+
+<% if @notes.present? %>
+  <p><strong>Reason:</strong> <%= @notes %></p>
+<% end %>
+
+<p>If you believe this was a mistake or you can provide additional documentation, just reply to this email.</p>
+
+<p>— Pickleball Team</p>

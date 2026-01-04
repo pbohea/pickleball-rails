@@ -1,0 +1,2 @@
+web: OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES WEB_CONCURRENCY=0 bin/rails server -p 3000
+worker: bin/jobs

@@ -1,0 +1,45 @@
+<!-- app/views/admin/venues/new.html.erb -->
+<% content_for :title, "New Venue" %>
+<div class="container mt-4" style="max-width: 600px;">
+  <h1 class="mb-3">Create Venue</h1>
+
+  <%= form_with model: [:admin, @venue], local: true, class: "needs-validation" do |f| %>
+    <div class="mb-3"><%= f.label :name %><%= f.text_field :name, class: "form-control", required: true %></div>
+    <div class="mb-3">
+      <%= f.label :category %>
+      <%= f.select :category, Venue::CATEGORIES, {}, class: "form-select" %>
+    </div>
+    <div class="mb-3"><%= f.label :website %><%= f.text_field :website, class: "form-control" %></div>
+
+    <div class="mb-3"><%= f.label :street_address %><%= f.text_field :street_address, class: "form-control", required: true %></div>
+    <div class="mb-3"><%= f.label :city %><%= f.text_field :city, class: "form-control", required: true %></div>
+    <div class="mb-3"><%= f.label :state %><%= f.text_field :state, class: "form-control", required: true %></div>
+    <div class="mb-3"><%= f.label :zip_code %><%= f.text_field :zip_code, class: "form-control", required: true %></div>
+
+    <div class="mb-3"><%= f.label :latitude %><%= f.text_field :latitude, class: "form-control" %></div>
+    <div class="mb-3"><%= f.label :longitude %><%= f.text_field :longitude, class: "form-control" %></div>
+
+    <div class="mb-3">
+      <%= f.label :time_zone, "Time Zone" %>
+      <%= f.select :time_zone,
+        ActiveSupport::TimeZone.all.map(&:tzinfo).map(&:name),
+        { include_blank: "Select a time zone…" },
+        class: "form-select", required: true %>
+    </div>
+
+    <div class="mb-3"><%= f.label :image %><%= f.file_field :image, class: "form-control" %></div>
+
+    <!-- Admin-only: Scrapable checkbox -->
+    <div class="mb-3">
+      <div class="form-check">
+        <%= f.check_box :scrapable, class: "form-check-input" %>
+        <%= f.label :scrapable, class: "form-check-label" do %>
+          <strong>Scrapable</strong>
+          <small class="text-muted d-block">This venue has a URL with a list of events that can be scraped</small>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="d-grid"><%= f.submit "Create Venue", class: "btn btn-primary" %></div>
+  <% end %>
+</div>

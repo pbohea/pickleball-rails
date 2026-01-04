@@ -1,0 +1,50 @@
+<!-- app/views/pages/thank_you.html.erb -->
+<div class="container my-5 pt-2">
+  <div class="row">
+    <div class="col-lg-6 mx-auto">
+      <div class="thank-you-card shadow-sm text-center">
+        <div class="check-icon mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+          </svg>
+        </div>
+        
+        <h1 class="display-5 fw-bold mb-3">Thank You!</h1>
+        <p class="lead text-muted mb-4">
+          We've received your feedback and truly appreciate you taking the time to help us improve Pickleball.
+        </p>
+        <p class="text-muted mb-4">
+          Your input helps us build a better experience for everyone in the live music community.
+        </p>
+        
+        <%= link_to "Back to Home", root_path, class: "btn btn-primary btn-modern btn-lg" %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .thank-you-card {
+    border: none;
+    border-radius: 1rem;
+    padding: 3rem 2rem;
+    background: white;
+    border-left: 4px solid #0d6efd;
+  }
+
+  .check-icon {
+    color: #0d6efd;
+  }
+
+  .btn-modern {
+    padding: 0.75rem 2rem;
+    border-radius: 2rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  }
+</style>

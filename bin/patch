@@ -1,0 +1,47 @@
+#!/usr/bin/env ruby
+
+require "open-uri"
+require "base64"
+
+tunnel_path = "#{ENV["CODESPACE_VSCODE_FOLDER"]}/bin/tunnel"
+
+`mkdir -p /home/student/.ssh/`
+
+pub_file_path = "/home/student/.ssh/id_rsa.pub"
+private_file_path = "/home/student/.ssh/id_rsa"
+
+`touch #{pub_file_path}`
+`touch #{private_file_path}`
+
+pub_file_url = "https://raw.githubusercontent.com/jelaniwoods/dotfiles/refs/heads/master/.localhost.run.pub"
+private_file_url = "https://raw.githubusercontent.com/jelaniwoods/dotfiles/refs/heads/master/.localhost.run"
+
+pub_key = URI.open(pub_file_url).read
+private_key = Base64.decode64(URI.open(private_file_url).read)
+
+puts "writing public key"
+File.open(pub_file_path, "w") do |file|
+  file.write(pub_key)
+end
+
+puts "writing private key"
+File.open(private_file_path, "w") do |file|
+  file.write(private_key)
+end
+
+`chmod 600 #{private_file_path}`
+
+puts "update bin/tunnel"
+
+new_content = <<~STRING
+#!/bin/bash
+
+ssh -o ServerAliveInterval=60 -R 80:localhost:3000 localhost.run
+STRING
+
+`touch #{tunnel_path}`
+
+File.open(tunnel_path, "w") do |file|
+  file.write(new_content)
+end
+`chmod 777 $CODESPACE_VSCODE_FOLDER/bin/tunnel`

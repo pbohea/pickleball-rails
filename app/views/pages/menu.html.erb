@@ -1,0 +1,320 @@
+<!-- Add cache busting meta tag at the top -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<!-- Add a timestamp to detect stale content -->
+<meta name="page-timestamp" content="<%= Time.current.to_i %>">
+
+<style>
+/* Custom Modal Styles - Inline to ensure they load */
+.custom-modal {
+  display: none !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999 !important;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.custom-modal.show {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.custom-modal-overlay {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(2px);
+}
+
+.custom-modal-content {
+  position: relative !important;
+  background: white !important;
+  border-radius: 12px !important;
+  max-width: 90% !important;
+  width: 400px !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  transform: scale(1) !important;
+  z-index: 100000 !important;
+}
+
+.custom-modal-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid #e9ecef !important;
+}
+
+.custom-modal-header h5 {
+  margin: 0 !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+  color: #212529 !important;
+}
+
+.custom-modal-close {
+  background: none !important;
+  border: none !important;
+  font-size: 24px !important;
+  color: #6c757d !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s;
+}
+
+.custom-modal-close:hover {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
+}
+
+.custom-modal-body {
+  padding: 20px 24px 24px !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .custom-modal-content {
+    background: #2d3748 !important;
+    color: #e2e8f0 !important;
+  }
+  
+  .custom-modal-header {
+    border-bottom-color: #4a5568 !important;
+  }
+  
+  .custom-modal-header h5 {
+    color: #e2e8f0 !important;
+  }
+  
+  .custom-modal-close {
+    color: #a0aec0 !important;
+  }
+  
+  .custom-modal-close:hover {
+    background-color: #4a5568 !important;
+    color: #e2e8f0 !important;
+  }
+}
+</style>
+
+<div class="d-flex flex-column justify-content-between" style="height: 100dvh; overflow: hidden;">
+  <!-- Add authentication state indicator (hidden, for JavaScript detection) -->
+  <div id="auth-state" 
+       data-user-signed-in="<%= user_signed_in? %>"
+       data-artist-signed-in="<%= artist_signed_in? %>"
+       data-owner-signed-in="<%= owner_signed_in? %>"
+       data-promoter-signed-in="<%=promoter_signed_in? %>"
+       style="display: none;"></div>
+ 
+  <div class="container py-4">
+    <% if owner_signed_in? || artist_signed_in? || user_signed_in? || promoter_signed_in? %>
+      <div class="d-grid gap-2">
+        <% if owner_signed_in? %>
+          <%= link_to "Dashboard", owner_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+          <%= link_to "Edit Profile", edit_owner_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+          <%= button_to "Sign Out", destroy_owner_session_path, 
+              method: :delete, 
+              class: "btn btn-outline-danger logout-btn w-100",
+              data: { turbo: false },
+              form_class: "d-inline-block w-100" %>
+        <% elsif artist_signed_in? %>
+          <%= link_to "Dashboard", artist_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+          <%= link_to "Edit Profile", edit_artist_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+          <%= button_to "Sign Out", destroy_artist_session_path, 
+              method: :delete, 
+              class: "btn btn-outline-danger logout-btn w-100",
+              data: { turbo: false },
+              form_class: "d-inline-block w-100" %>
+        <% elsif user_signed_in? %>
+              <% if is_admin? %>
+              <%= link_to "Admin Dashboard", admin_dashboard_path, class: "btn btn-outline-warning", data: { turbo: false } %>
+              <% end %>
+          <%= link_to "Dashboard", user_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+          <%= link_to "Edit Profile", edit_user_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+          <%= button_to "Sign Out", destroy_user_session_path, 
+              method: :delete, 
+              class: "btn btn-outline-danger logout-btn w-100",
+              data: { turbo: false },
+              form_class: "d-inline-block w-100" %>
+        <% elsif promoter_signed_in? %>
+          <%= link_to "Dashboard", promoter_dashboard_path, class: "btn btn-outline-primary", data: { turbo: false } %>
+          <%= link_to "Edit Profile", edit_promoter_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
+          <%= button_to "Sign Out", destroy_promoter_session_path, 
+              method: :delete, 
+              class: "btn btn-outline-danger logout-btn w-100",
+              data: { turbo: false },
+              form_class: "d-inline-block w-100" %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="d-grid gap-2">
+        <button class="btn btn-outline-primary" id="signInButton" data-action="signin">Sign In</button>
+        <button class="btn btn-outline-secondary" id="signUpButton" data-action="signup">Sign Up</button>
+      </div>
+    <% end %>
+  </div>
+
+    <div class="text-center py-3">
+      <%= link_to "About", about_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+      <span class="text-muted mx-2">|</span>
+      <%= link_to "Privacy", privacy_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+      <span class="text-muted mx-2">|</span>
+      <%= link_to "Feedback", feedback_path, class: "text-primary text-decoration-none fw-semibold", data: { turbo: false } %>
+    </div>
+</div>
+
+<!-- Custom Sign In Modal -->
+<div id="signinModal" class="custom-modal">
+  <div class="custom-modal-overlay" data-close-modal="signin"></div>
+  <div class="custom-modal-content">
+    <div class="custom-modal-header">
+      <h5>Sign In As</h5>
+      <button class="custom-modal-close" data-close-modal="signin">&times;</button>
+    </div>
+    <div class="custom-modal-body">
+      <%= link_to "User", new_user_session_path, class: "btn btn-outline-primary w-100 mb-2", data: { turbo: false } %>
+      <%= link_to "Owner", new_owner_session_path, class: "btn btn-outline-success w-100 mb-2", data: { turbo: false } %>
+      <%= link_to "Artist", new_artist_session_path, class: "btn btn-outline-info w-100 mb-2", data: { turbo: false } %>
+      <%= link_to "Promoter / Booker", new_promoter_session_path, class: "btn btn-outline-secondary w-100", data: { turbo: false } %>
+
+    </div>
+  </div>
+</div>
+
+<!-- Custom Sign Up Modal -->
+<div id="signupModal" class="custom-modal">
+  <div class="custom-modal-overlay" data-close-modal="signup"></div>
+  <div class="custom-modal-content">
+    <div class="custom-modal-body">
+      <p class="fw-semibold text-center mb-1">Looking to find live music at bars near you?</p>
+      <%= link_to "Sign up as a User", new_user_registration_path, class: "btn btn-outline-primary w-100 mb-4", data: { turbo: false } %>
+
+      <p class="fw-semibold text-center mb-1">Are you an artist looking to bring more fans to your shows?</p>
+      <%= link_to "Sign up as an Artist", new_artist_registration_path, class: "btn btn-outline-info w-100 mb-4", data: { turbo: false } %>
+
+      <p class="fw-semibold text-center mb-1">Are you a venue owner looking to increase traffic?</p>
+      <%= link_to "Sign up as an Owner", new_owner_registration_path, class: "btn btn-outline-success w-100 mb-4", data: { turbo: false } %>
+
+      <p class="fw-semibold text-center mb-1">Are you a promoter or booker looking to publicize events?</p>
+      <%= link_to "Sign up as a Promoter / Booker", new_promoter_registration_path, class: "btn btn-outline-success w-100", data: { turbo: false } %>
+    </div>
+  </div>
+</div>
+
+<script>
+// ONLY run this code on the menu page - won't interfere with map
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're actually on the menu page
+  const isMenuPage = document.getElementById('auth-state'); // Only exists on menu page
+  if (!isMenuPage) {
+    console.log('Not on menu page - skipping menu-specific JavaScript');
+    return; // Exit early if not on menu page
+  }
+  
+  console.log('Menu page loaded');
+  
+  // Handle logout button clicks (now works with button_to forms)
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('.logout-btn') || 
+        e.target.closest('form[action*="sign_out"]') ||
+        e.target.closest('.logout-btn')) {
+      console.log('Logout button/form clicked');
+      sessionStorage.setItem('justLoggedOut', 'true');
+      sessionStorage.setItem('logoutTime', Date.now().toString());
+    }
+  });
+  
+  // ONLY run visibility handlers on menu page
+  let hasBeenHidden = false;
+  
+  document.addEventListener('visibilitychange', function() {
+    // Double-check we're still on menu page
+    if (!document.getElementById('auth-state')) return;
+    
+    if (document.hidden) {
+      hasBeenHidden = true;
+      console.log('Menu tab hidden');
+    } else if (hasBeenHidden) {
+      console.log('Menu tab became visible after being hidden');
+      
+      // Also check for logout flag
+      if (sessionStorage.getItem('justLoggedOut') === 'true') {
+        console.log('Logout flag detected - refreshing');
+        sessionStorage.removeItem('justLoggedOut');
+        window.location.reload(true);
+      }
+    }
+  });
+  
+  // iOS specific: Handle page show (back/forward cache) - ONLY for menu
+  window.addEventListener('pageshow', function(e) {
+    if (!document.getElementById('auth-state')) return; // Not on menu page
+    
+    console.log('Page show event - persisted:', e.persisted);
+    if (e.persisted) {
+      console.log('Page loaded from iOS back/forward cache - forcing refresh');
+      window.location.reload(true);
+    }
+  });
+  
+  // Setup modals
+  setupModals();
+});
+
+function setupModals() {
+  // Sign In Modal
+  const signInButton = document.getElementById('signInButton');
+  const signinModal = document.getElementById('signinModal');
+  
+  if (signInButton && signinModal) {
+    signInButton.addEventListener('click', function() {
+      console.log('Sign in button clicked');
+      signinModal.classList.add('show');
+    });
+  }
+  
+  // Sign Up Modal  
+  const signUpButton = document.getElementById('signUpButton');
+  const signupModal = document.getElementById('signupModal');
+  
+  if (signUpButton && signupModal) {
+    signUpButton.addEventListener('click', function() {
+      console.log('Sign up button clicked');
+      signupModal.classList.add('show');
+    });
+  }
+  
+  // Close modal handlers
+  document.addEventListener('click', function(e) {
+    if (e.target.hasAttribute('data-close-modal')) {
+      const modalType = e.target.getAttribute('data-close-modal');
+      const modal = document.getElementById(modalType + 'Modal');
+      if (modal) {
+        modal.classList.remove('show');
+      }
+    }
+  });
+}
+</script>

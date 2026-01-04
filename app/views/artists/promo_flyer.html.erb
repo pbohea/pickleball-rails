@@ -1,0 +1,161 @@
+<style>
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    /* Hide browser headers and footers */
+    @page {
+      margin: 0;
+      size: auto;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      -webkit-print-color-adjust: exact;
+      color-adjust: exact;
+    }
+
+    /* Hide any potential browser UI elements */
+    html, body {
+      background: white !important;
+    }
+  }
+
+  .logo-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tiny-logo {
+    height: 85px;
+    width: auto;
+    vertical-align: middle;
+  }
+
+  .qr-wrapper {
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    min-height: 320px;
+  }
+
+  .qr-wrapper svg {
+    width: 300px !important;
+    height: 300px !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0 auto !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  /* Mobile-specific adjustments */
+  @media (max-width: 768px) {
+    .tiny-logo {
+      height: 24px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+    }
+
+    .qr-wrapper {
+      min-height: 280px;
+    }
+
+    .qr-wrapper svg {
+      width: 90vw !important;
+      max-width: 280px !important;
+      height: 90vw !important;
+      max-height: 280px !important;
+    }
+  }
+</style>
+
+<div class="container py-4 text-center">
+
+  <div class="no-print mb-3">
+    <% if turbo_native_app? %>
+      <button onclick="shareFlyer()" class="btn btn-primary">
+        <i class="fas fa-share me-1"></i>
+        Share Flyer
+      </button>
+    <% else %>
+      <a href="<%= promo_flyer_print_artist_path(@artist) %>" target="_blank" class="btn btn-primary">
+        Print Flyer
+      </a>
+    <% end %>
+  </div>
+
+  <script>
+    function shareFlyer() {
+      // Create a smart link that opens the app if installed, otherwise goes to App Store
+      // production update
+      const appStoreUrl = 'https://apps.apple.com/us/app/your-app-id/id6753730148';
+      const webUrl = window.location.href;
+      const shareText = 'Check out <%= @artist&.username %> on Pickleball! Download the app: ' + appStoreUrl + ' or view online: ' + webUrl;
+
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nativeApp) {
+        // Send message to iOS app for native sharing
+        window.webkit.messageHandlers.nativeApp.postMessage({
+          action: 'share',
+          url: appStoreUrl,
+          title: 'Check out <%= @artist&.username %> on Pickleball!',
+          text: shareText
+        });
+      } else if (navigator.share) {
+        // Fallback to Web Share API
+        navigator.share({
+          title: 'Check out <%= @artist&.username %> on Pickleball!',
+          text: shareText,
+          url: appStoreUrl
+        });
+      } else {
+        // Final fallback - copy to clipboard
+        navigator.clipboard.writeText(shareText);
+        alert('Link copied to clipboard!');
+      }
+    }
+  </script>
+
+  <% if @artist %>
+    <h1 class="fw-bold mb-3 text-primary"><%= @artist.username %></h1>
+
+    <h2 class="fw-bold mb-3 logo-text">
+      Find Me on Pickleball
+      <img src="/logoplain.png" alt="Pickleball" class="tiny-logo">
+    </h2>
+
+    <p class="lead mb-4">Scan the QR code to download the app</p>
+
+    <div class="qr-wrapper">
+      <% if @qr_code %>
+        <%= raw @qr_code.as_svg(
+          module_size: 4, 
+          standalone: true,
+          viewbox: true,
+          use_path: true
+        ) %>
+      <% else %>
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          QR Code could not be generated
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="alert alert-danger">
+      <h2>Error</h2>
+      <p>Artist not found</p>
+    </div>
+  <% end %>
+</div>

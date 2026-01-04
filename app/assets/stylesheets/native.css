@@ -1,0 +1,238 @@
+/* Hide elements that shouldn't appear in native app */
+.d-hotwire-native-none {
+  display: none !important;
+}
+
+.d-hotwire-native-block {
+  display: block !important;
+}
+
+[data-bridge-components~="button"] 
+[data-controller~="bridge--button"] {
+  display: none !important;
+}
+
+/* Prevent viewport scaling issues that can affect navigation bars */
+@media screen and (max-device-width: 480px) {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+}
+
+/* Ensure body doesn't interfere with native navigation */
+body {
+  /* Prevent any margin/padding that might push native UI elements */
+  margin: 0 !important;
+  padding: 0 !important;
+  
+  /* Prevent background color conflicts */
+  background-color: transparent !important;
+  
+  /* Prevent scroll issues that might affect navigation bar appearance */
+  overflow-x: hidden;
+  
+  /* Ensure proper positioning context */
+  position: relative;
+}
+
+/* Prevent Bootstrap's container from interfering with native UI */
+.container {
+  /* Remove any top margin that might conflict with navigation bar */
+  margin-top: 0 !important;
+  
+  /* Ensure proper padding for safe areas */
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Fix for modal positioning in native app */
+.modal {
+  /* Ensure modals don't interfere with navigation bars */
+  z-index: 1040 !important;
+}
+
+/* Prevent Bootstrap alerts from interfering with native navigation */
+#flash-overlay {
+  /* Adjust positioning to not interfere with navigation bar */
+  top: calc(1rem + env(safe-area-inset-top, 0)) !important;
+  z-index: 1049 !important; /* Below native navigation elements */
+}
+
+/* Ensure proper viewport behavior */
+html {
+  /* Prevent zoom/scaling issues */
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+  text-size-adjust: none;
+  
+  /* Ensure proper height calculation */
+  height: 100%;
+}
+
+/* Prevent map-related configuration errors */
+.map-container, .map-wrapper {
+  /* Ensure proper positioning for native map containers */
+  position: relative !important;
+  overflow: hidden !important;
+  
+  /* Prevent interference with native map rendering */
+  -webkit-transform: none !important;
+  transform: none !important;
+}
+
+/* Additional stability for Hotwire Native */
+@media screen and (max-width: 768px) {
+  /* Prevent layout shifts that can cause map errors */
+  .container-fluid, .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+}
+/* Custom Modal Styles for Native App */
+.custom-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.custom-modal.show {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.custom-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 12px;
+  max-width: 90%;
+  width: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transform: scale(0.9);
+  animation: modalPop 0.2s ease-out forwards;
+}
+
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.custom-modal-header h5 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.custom-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.custom-modal-close:hover {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.custom-modal-body {
+  padding: 20px 24px 24px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from { 
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-modal.hiding {
+  animation: fadeOut 0.2s ease-out forwards;
+}
+
+.custom-modal.hiding .custom-modal-content {
+  animation: modalShrink 0.2s ease-out forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes modalShrink {
+  from { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  to { 
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .custom-modal-content {
+    background: #2d3748;
+    color: #e2e8f0;
+  }
+  
+  .custom-modal-header {
+    border-bottom-color: #4a5568;
+  }
+  
+  .custom-modal-header h5 {
+    color: #e2e8f0;
+  }
+  
+  .custom-modal-close {
+    color: #a0aec0;
+  }
+  
+  .custom-modal-close:hover {
+    background-color: #4a5568;
+    color: #e2e8f0;
+  }
+}

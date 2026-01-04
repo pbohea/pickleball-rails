@@ -1,0 +1,99 @@
+<!--views/admin/index.html.erb-->
+<% content_for :title, "Venue Requests - Admin" %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Venue Requests</h2>
+    <div class="btn-group">
+      <%= link_to "All", admin_venue_requests_path, 
+          class: "btn #{'btn-primary' if params[:status].blank?} #{'btn-outline-primary' unless params[:status].blank?}" %>
+      <%= link_to "Pending", admin_venue_requests_path(status: :pending), 
+          class: "btn #{'btn-warning' if params[:status] == 'pending'} #{'btn-outline-warning' unless params[:status] == 'pending'}" %>
+      <%= link_to "Approved", admin_venue_requests_path(status: :approved), 
+          class: "btn #{'btn-success' if params[:status] == 'approved'} #{'btn-outline-success' unless params[:status] == 'approved'}" %>
+      <%= link_to "Rejected", admin_venue_requests_path(status: :rejected), 
+          class: "btn #{'btn-danger' if params[:status] == 'rejected'} #{'btn-outline-danger' unless params[:status] == 'rejected'}" %>
+    </div>
+  </div>
+
+  <% if @venue_requests.any? %>
+    <div class="row">
+      <% @venue_requests.each do |request| %>
+        <div class="col-md-6 col-lg-4 mb-4">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="card-title mb-0">
+                <%= request.name %>
+                <% if request.ownership_claim? %>
+                  <i class="fas fa-crown text-warning ms-1" title="Ownership Claim"></i>
+                <% end %>
+              </h6>
+              <span class="badge bg-<%= status_color(request.status) %>">
+                <%= request.status.humanize %>
+              </span>
+            </div>
+            <div class="card-body">
+              <p class="card-text">
+                <strong>Address:</strong><br>
+                <%= request.full_address %>
+              </p>
+              <p class="card-text">
+                <strong>Type:</strong> <%= request.category.humanize %><br>
+                <strong>Requested by:</strong> <%= request.requester_type.humanize %> #<%= request.requester_id %>
+                <% if request.ownership_claim? %>
+                  <br><strong>Phone:</strong> <%= request.owner_phone %>
+                <% end %>
+              </p>
+              <% if request.website.present? %>
+                <p class="card-text">
+                  <strong>Website:</strong> 
+                  <%= link_to request.website, request.website, target: "_blank", rel: "noopener", class: "text-decoration-none" %>
+                </p>
+              <% end %>
+              <% if request.ownership_claim? && request.utility_bill.attached? %>
+                <p class="card-text">
+                  <strong>Verification Document:</strong><br>
+                  <%= link_to "View Document", url_for(request.utility_bill), 
+                      target: "_blank", 
+                      class: "btn btn-sm btn-outline-primary" %>
+                </p>
+              <% end %>
+              <p class="card-text">
+                <small class="text-muted">
+                  Requested <%= time_ago_in_words(request.created_at) %> ago
+                </small>
+              </p>
+            </div>
+            <div class="card-footer">
+              <% if request.pending? %>
+                <div class="btn-group w-100">
+                  <%= button_to "Approve", approve_admin_venue_request_path(request), 
+                      method: :patch, 
+                      class: "btn btn-success btn-sm",
+                      data: { 
+                        confirm: "Are you sure you want to approve this venue request? This will create a new venue#{' and assign ownership' if request.ownership_claim?}." 
+                      } %>
+                  <%= button_to "Reject", reject_admin_venue_request_path(request), 
+                      method: :patch, 
+                      class: "btn btn-danger btn-sm",
+                      data: { 
+                        confirm: "Are you sure you want to reject this venue request?" 
+                      } %>
+                </div>
+              <% elsif request.approved? && request.venue_id %>
+                <%= link_to "View Venue", venue_path(request.venue), class: "btn btn-primary btn-sm w-100" %>
+              <% elsif request.rejected? %>
+                <span class="text-muted">Rejected</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      <h4>No venue requests found</h4>
+      <p>There are no venue requests matching your criteria.</p>
+    </div>
+  <% end %>
+</div>

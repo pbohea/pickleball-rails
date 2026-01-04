@@ -1,0 +1,177 @@
+<!-- FORM 1: Artist Create Event Form -->
+<div class="container pt-4" style="max-width: 600px;">
+
+  <%= form_with model: event, local: true, class: "needs-validation",
+                data: {
+                  controller: "time-options artist-category-warning conflict-checker",
+                  conflict_checker_endpoint_value: "/events/conflicts_ajax",
+                  # IMPORTANT: on this create form, conflict checker should only DISABLE (never enable)
+                  conflict_checker_disable_only_value: true,
+                  artist_category_warning_artist_performance_type_value: current_artist.performance_type
+                } do |f| %>
+
+    <!-- Hidden field to set the artist -->
+    <%= f.hidden_field :artist_id, value: current_artist.id %>
+
+    <!-- Search or select venue -->
+    <div class="mb-3" data-controller="venue-autocomplete">
+      <%= label_tag "venue_search", "Search for Venue", class: "form-label" %>
+      <%= text_field_tag "venue_search", "",
+        placeholder: "Start typing venue name...",
+        class: "form-control",
+        data: {
+          action: "input->venue-autocomplete#search",
+          venue_autocomplete_target: "input"
+        } %>
+
+      <ul class="list-group mt-1" data-venue-autocomplete-target="results"></ul>
+
+      <%= hidden_field_tag "event[venue_slug]", nil,
+          data: {
+            venue_autocomplete_target: "hidden",
+            time_options_target: "venue",
+            conflict_checker_target: "venue",
+            action: "change->time-options#venueChanged change->conflict-checker#venueChanged"
+          } %>
+
+      <div class="mt-2 text-center">
+        <%= link_to "Can't find your venue? Add it here", new_venue_request_path,
+                    class: "btn btn-outline-secondary btn-sm", target: "_blank" %>
+      </div>
+
+      <!-- Venue verification section -->
+      <div class="border border-info rounded p-3 bg-info-subtle mt-3 d-none" data-venue-autocomplete-target="details">
+        <h5>Does this look right?</h5>
+        <p><strong>Name:</strong> <span data-venue-autocomplete-target="name"></span></p>
+        <p><strong>Address:</strong> <span data-venue-autocomplete-target="address"></span></p>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="venue_verification"
+                 name="venue_verification"
+                 value="1"
+                 data-venue-autocomplete-target="verification"
+                 data-action="change->venue-autocomplete#toggleSubmit change->conflict-checker#venueChanged">
+          <label class="form-check-label" for="venue_verification">
+            <strong>Yes, this is the correct venue for my event</strong>
+          </label>
+        </div>
+      </div>
+
+      <!-- Error block -->
+      <% if event.errors[:base].any? %>
+        <div class="text-danger small mt-2"><%= event.errors[:base].first %></div>
+      <% end %>
+
+      <!-- Category Dropdown -->
+      <div class="mb-3">
+        <%= f.label :category, class: "form-label" %>
+        <%= f.select :category,
+            Artist::PERFORMANCE_TYPES.map { |type| [type, type] },
+            { selected: current_artist.performance_type },
+            {
+              class: "form-select",
+              required: true,
+              data: {
+                artist_category_warning_target: "category",
+                action: "change->artist-category-warning#checkCategory"
+              }
+            } %>
+        <div class="small text-muted mt-1 d-none" data-artist-category-warning-target="warning">
+          This differs from your profile and will only apply to this event
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-3">
+        <%= f.label :description, class: "form-label" %>
+        <%= f.text_area :description, class: "form-control", placeholder: "Describe the event", rows: 3 %>
+      </div>
+
+      <!-- Date Dropdown -->
+      <div class="mb-3">
+        <%= f.label :date, class: "form-label" %>
+        <%= f.select :date, [["Select date", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "date",
+              conflict_checker_target: "date",
+              action: "change->time-options#updateStartTimes change->conflict-checker#dateChanged"
+            } %>
+      </div>
+
+      <!-- Start Time Dropdown -->
+      <div class="mb-3">
+        <%= f.label :start_time, "Start Time", class: "form-label" %>
+        <%= f.select :start_time, [["Select start time", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "startTime",
+              conflict_checker_target: "startTime",
+              action: "change->time-options#updateEndTimes change->conflict-checker#startTimeChanged"
+            } %>
+      </div>
+
+      <!-- End Time Dropdown -->
+      <div class="mb-3">
+        <%= f.label :end_time, "End Time", class: "form-label" %>
+        <%= f.select :end_time, [["Select end time", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "endTime",
+              conflict_checker_target: "endTime",
+              action: "change->conflict-checker#endTimeChanged"
+            } %>
+      </div>
+
+      <!-- Live conflict banner -->
+      <div class="mb-2" data-conflict-checker-target="flash"></div>
+
+      <!-- Cover Checkbox -->
+      <div class="form-check mb-3">
+        <%= f.check_box :cover,
+            class: "form-check-input",
+            id: "event_cover",
+            onchange: "toggleCoverAmount()" %>
+        <%= f.label :cover, "Cover Charge?", class: "form-check-label" %>
+      </div>
+
+      <!-- Cover Amount Field (hidden by default) -->
+      <div class="mb-3" id="cover-amount-field" style="display: none;">
+        <%= f.label :cover_amount, "Cover Amount ($)", class: "form-label" %>
+        <%= f.number_field :cover_amount,
+            class: "form-control",
+            placeholder: "Enter amount",
+            min: 1,
+            step: 1 %>
+      </div>
+
+      <!-- Outdoors Checkbox (defaults to indoors = true, so outdoors = false) -->
+      <div class="form-check mb-4">
+        <%= f.check_box :indoors,
+                        { checked: false, class: "form-check-input" },
+                        "0",
+                        "1" %>
+        <%= f.label :indoors, "Outdoors?", class: "form-check-label" %>
+      </div>
+
+      <!-- Submit button (controlled by venue-autocomplete; conflict-checker can only DISABLE) -->
+      <div class="d-grid">
+        <input type="submit"
+               value="Create Event"
+               class="btn btn-primary"
+               disabled
+               data-venue-autocomplete-target="submitButton"
+               data-conflict-checker-target="submit">
+      </div>
+
+    </div>
+    <!-- End of venue-autocomplete controller -->
+
+  <% end %>
+</div>
+
+<div>
+  <%= link_to "Back to events", artist_dashboard_path %>
+</div>

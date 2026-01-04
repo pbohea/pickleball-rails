@@ -1,0 +1,49 @@
+<% content_for :title, "Promoter Sign Up" %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h2 class="card-title text-center text-primary mb-2">Sign Up as a Booker / Promoter</h2>
+          <p class="text-center text-muted small mb-4">
+            Or sign up as a
+            <%= link_to "User", new_user_registration_path, class: "text-primary text-decoration-none" %>
+            or
+            <%= link_to "Artist", new_artist_registration_path, class: "text-primary text-decoration-none" %>
+            or
+            <%= link_to "Owner", new_owner_registration_path, class: "text-primary text-decoration-none" %>
+
+            instead
+          </p>
+
+          <%= form_with model: resource, as: resource_name, url: registration_path(resource_name), local: true, data: { turbo: false } do |f| %>
+            <%= render "devise/shared/error_messages", resource: resource %>
+
+            <div class="mb-3">
+              <%= f.label :email, class: "form-label" %>
+              <%= f.email_field :email, class: "form-control", autocomplete: "email" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, class: "form-label" %>
+              <%= f.password_field :password, class: "form-control", autocomplete: "new-password" %>
+              <div class="form-text">
+                Must be 8–20 characters, with at least one uppercase letter, one lowercase letter, and one number.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password_confirmation, class: "form-label" %>
+              <%= f.password_field :password_confirmation, class: "form-control", autocomplete: "new-password" %>
+            </div>
+
+            <div class="d-grid mb-3">
+              <%= f.submit "Create Account", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

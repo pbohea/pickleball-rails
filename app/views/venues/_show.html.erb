@@ -1,0 +1,44 @@
+<turbo-frame id="venue_show_frame">
+  <div class="modal-header">
+    <h5 class="modal-title"><%= @venue.name %></h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body text-center">
+
+    <% if @venue.image.present? %>
+      <img src="<%= url_for(@venue.image) %>" alt="Venue Photo"
+           class="rounded-circle mb-3"
+           style="width: 120px; height: 120px; object-fit: cover;">
+    <% else %>
+      <div class="rounded-circle bg-secondary mb-3 d-flex align-items-center justify-content-center"
+           style="width: 120px; height: 120px; color: white;">
+        <i class="fas fa-user fa-2x"></i>
+      </div>
+    <% end %>
+
+    <h4 class="mb-3"><%= @venue.name %></h4>
+
+    <% if @venue.full_address.present? %>
+      <p class="mb-2"><%= @venue.full_address %></p>
+    <% end %>
+
+    <% if @venue.website.present? %>
+      <p>
+        <%= link_to "Visit Website", @venue.website,
+              target: "_blank", rel: "noopener",
+              class: "btn btn-sm btn-outline-dark" %>
+      </p>
+    <% end %>
+
+    <p class="text-muted mt-3">
+      <strong>Category:</strong> <%= @venue.category %>
+    </p>
+
+<%= link_to "View Upcoming Events",
+            venue_path(@venue),
+            class: "btn btn-outline-primary mt-3 mb-3",
+            data: { turbo_frame: "_top" } %>
+
+  </div>
+</turbo-frame>

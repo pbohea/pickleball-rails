@@ -1,0 +1,45 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-4">Change your password</h2>
+
+          <%= form_with scope: resource_name, url: password_path(resource_name), method: :put, data: { turbo: false } do |f| %>
+            <%= f.hidden_field :reset_password_token %>
+
+            <div class="mb-3">
+              <%= f.label :password, "New password", class: "form-label" %>
+              <%= f.password_field :password, 
+                  autofocus: true, 
+                  autocomplete: "new-password", 
+                  required: true, 
+                  class: "form-control",
+                  placeholder: "Enter your new password" %>
+              <% if @minimum_password_length %>
+                <small class="form-text text-muted"><%= @minimum_password_length %> characters minimum</small>
+              <% end %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password_confirmation, "Confirm your new password", class: "form-label" %>
+              <%= f.password_field :password_confirmation, 
+                  autocomplete: "new-password", 
+                  required: true, 
+                  class: "form-control",
+                  placeholder: "Confirm your new password" %>
+            </div>
+
+            <div class="d-grid mb-3">
+              <%= f.submit "Change my password", class: "btn btn-primary" %>
+            </div>
+          <% end %>
+
+          <div class="text-center">
+            <%= render "artists/shared/links" %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

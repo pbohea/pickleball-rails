@@ -1,0 +1,28 @@
+<% content_for :title, "Artist Lead" %>
+
+<div class="container py-5" style="max-width: 560px;">
+  <div class="card shadow-sm rounded-4">
+    <div class="card-body">
+      <h2 class="h4 mb-2 text-primary">Get your artist page started</h2>
+      <%# <p class="text-muted mb-4">Tell us your band name and email—we’ll send you a link to claim your page and add shows.</p> %>
+
+      <%= form_with model: @artist_lead, url: artist_leads_path, local: true do |f| %>
+        <div class="mb-3">
+          <%= f.label :band_name, "Band or artist name", class: "form-label" %>
+          <%= f.text_field :band_name, class: "form-control", placeholder: "Your band name" %>
+        </div>
+
+        <div class="mb-3">
+          <%= f.label :email, "Email (this will not be shared)", class: "form-label" %>
+          <%= f.email_field :email, class: "form-control", placeholder: "you@example.com" %>
+        </div>
+
+        <%= f.hidden_field :source, value: @artist_lead.source %>
+
+        <div class="d-grid">
+          <%= f.submit "Submit", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+=> [32m#<Venue:0x00007f398eff7458[0m
+ id: [1;34m27[0m,
+ category: [31m[1;31m"[0m[31mBar[1;31m"[0m[31m[0m,
+ events_count: [1;36mnil[0m,
+ name: [31m[1;31m"[0m[31mNew Test[1;31m"[0m[31m[0m,
+ website: [31m[1;31m"[0m[31mhttps://google.com[1;31m"[0m[31m[0m,
+ owner_id: [1;34m43[0m,
+ created_at: [31m[1;31m"[0m[31m2025-05-12 00:35:52.744240000 +0000[1;31m"[0m[31m[0m,
+ updated_at: [31m[1;31m"[0m[31m2025-05-12 00:35:52.744240000 +0000[1;31m"[0m[31m[0m,
+ latitude: [1;35m40.9203117[0m,
+ longitude: [1;35m-73.129221[0m,
+ street_address: [31m[1;31m"[0m[31m1095 rte 25a[1;31m"[0m[31m[0m,
+ city: [31m[1;31m"[0m[31mStony Brook[1;31m"[0m[31m[0m,
+ state: [31m[1;31m"[0m[31mNY[1;31m"[0m[31m[0m,
+ zip_code: [31m[1;31m"[0m[31m11790[1;31m"[0m[31m[0m[32m>[0m

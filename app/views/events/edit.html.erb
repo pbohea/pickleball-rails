@@ -1,0 +1,52 @@
+<% content_for :title, "Edit Event" %>
+
+<% if can_modify_event?(@event) %>
+  <% if artist_signed_in? %>
+    <%= render partial: "artist_edit_form", locals: { event: @event } %>
+  <% elsif owner_signed_in? %>
+    <%= render partial: "owner_edit_form", locals: { event: @event } %>
+  <% elsif promoter_signed_in? %>
+      <%= render partial: "promoter_edit_form", locals: { event: @event } %>
+  <% elsif user_signed_in? && is_admin? %>
+    <%= render partial: "admin_edit_form", locals: { event: @event } %>
+  <% else %>
+    <div class="alert alert-danger">
+      <h4>Access Denied</h4>
+      <p>You don't have permission to edit this event.</p>
+      <%= link_to "Back to event", @event, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="alert alert-danger">
+    <h4>Access Denied</h4>
+    <p>You don't have permission to edit this event.</p>
+    <%= link_to "Back to event", @event, class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<script>
+function toggleCoverAmount() {
+  const checkbox = document.getElementById('event_cover');
+  const coverAmountField = document.getElementById('cover-amount-field');
+  
+  if (checkbox && coverAmountField) {
+    const coverAmountInput = coverAmountField.querySelector('input[type="number"]');
+    
+    if (checkbox.checked) {
+      coverAmountField.style.display = 'block';
+      if (coverAmountInput) coverAmountInput.required = true;
+    } else {
+      coverAmountField.style.display = 'none';
+      if (coverAmountInput) {
+        coverAmountInput.required = false;
+        coverAmountInput.value = '';
+      }
+    }
+  }
+}
+
+// Run on page load to set initial state
+document.addEventListener('DOMContentLoaded', function() {
+  toggleCoverAmount();
+});
+</script>

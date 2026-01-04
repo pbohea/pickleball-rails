@@ -1,0 +1,47 @@
+class Promoters::ConfirmationsController < Devise::ConfirmationsController
+  def show
+    self.resource = resource_class.confirm_by_token(params[:confirmation_token])
+    yield resource if block_given?
+
+    if resource.errors.empty?
+      set_flash_message!(:notice, :confirmed)
+      
+      # Set remember_me on the resource BEFORE sign_in
+      resource.remember_me = true
+      resource.remember_me!
+      
+      # Sign in and explicitly pass event: :authentication to trigger remember cookie
+      sign_in(resource_name, resource, event: :authentication, store: true)
+      
+      # Manually generate and set the remember cookie
+      resource.class.serialize_into_cookie(resource).tap do |cookie_data|
+        cookies.permanent.signed["remember_promoter_token"] = {
+          value: cookie_data,
+          httponly: true,
+          secure: Rails.env.production?
+        }
+      end
+      
+      track_promoter_session(resource)
+      
+      Rails.logger.info "🔐 After everything - Response cookies: #{response.cookies.keys.join(', ')}"
+      
+      respond_with_navigational(resource){ redirect_to after_confirmation_path_for(resource_name, resource) }
+    else
+      respond_with_navigational(resource.errors, status: :unprocessable_entity){ render :new }
+    end
+  end
+
+  protected
+
+  def after_confirmation_path_for(resource_name, resource)
+    promoter_dashboard_path
+  end
+
+  private
+
+  def track_promoter_session(promoter)
+    cookies.permanent.encrypted[:promoter_id] = promoter.id
+    Current.promoter = promoter if defined?(Current)
+  end
+end

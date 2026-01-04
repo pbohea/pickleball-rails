@@ -1,0 +1,30 @@
+<!-- app/views/venue_approval_mailer/venue_approved.html.erb -->
+
+<% recipient_email = @artist&.email || @owner&.email %>
+<p>Hi <%= recipient_email %>,</p>
+
+<% if @venue_request.requester_type == "artist" || @venue_request.requester_type == "promoter" %>
+  <p>Great news! Your venue request for <strong><%= @venue.name %></strong> has been approved.</p>
+
+  <p>Your venue is now live on Pickleball — fans can discover and follow it today:</p>
+<% else %>
+  <p>Great news! Your venue claim for <strong><%= @venue.name %></strong> has been approved.</p>
+
+  <p>You can now manage your venue and update its details on Pickleball:</p>
+<% end %>
+
+<p>
+  <a href="<%= @venue_url %>" style="
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;">
+    View Your Venue
+  </a>
+</p>
+
+<p>Thank you for being part of the Pickleball community!</p>
+
+<p>— The Pickleball Team</p>

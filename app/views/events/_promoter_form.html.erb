@@ -1,0 +1,234 @@
+<!-- Promoter Create Event Form -->
+<div class="container mt-5" style="max-width: 600px;">
+  <h2 class="mb-4 text-center">Create New Event</h2>
+
+  <%= form_with model: @event, local: true, class: "needs-validation",
+        data: {
+          controller: "venue-autocomplete time-options owner-category-warning conflict-checker",
+          conflict_checker_endpoint_value: "/events/conflicts_ajax",
+          conflict_checker_disable_only_value: true
+        } do |f| %>
+
+    <!-- Venue search/verify (replaces the dropdown) -->
+    <div class="mb-3" data-controller="venue-autocomplete">
+      <%= label_tag "venue_search", "Search for Venue", class: "form-label" %>
+      <%= text_field_tag "venue_search", "",
+            placeholder: "Start typing venue name...",
+            class: "form-control",
+            data: {
+              action: "input->venue-autocomplete#search",
+              venue_autocomplete_target: "input"
+            } %>
+
+      <ul class="list-group mt-1" data-venue-autocomplete-target="results"></ul>
+
+      <!-- Hidden field your controller fills with the chosen slug -->
+      <%= hidden_field_tag "event[venue_slug]", nil,
+            data: {
+              venue_autocomplete_target: "hidden",
+              time_options_target: "venue",
+              conflict_checker_target: "venue",
+              action: "change->time-options#venueChanged change->conflict-checker#venueChanged"
+            } %>
+
+      <div class="mt-2 text-center">
+        <%= link_to "Can't find your venue? Add it here", new_venue_request_path,
+                    class: "btn btn-outline-secondary btn-sm", target: "_blank" %>
+      </div>
+
+      <!-- Optional verification panel (enables submit when checked) -->
+      <div class="border border-info rounded p-3 bg-info-subtle mt-3 d-none" data-venue-autocomplete-target="details">
+        <h5>Does this look right?</h5>
+        <p><strong>Name:</strong> <span data-venue-autocomplete-target="name"></span></p>
+        <p><strong>Address:</strong> <span data-venue-autocomplete-target="address"></span></p>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input"
+                type="checkbox"
+                id="venue_verification"
+                name="venue_verification"
+                value="1"
+                data-venue-autocomplete-target="verification"
+                data-action="change->venue-autocomplete#toggleSubmit change->conflict-checker#venueChanged">
+          <label class="form-check-label" for="venue_verification">
+            <strong>Yes, this is the correct venue for my event</strong>
+          </label>
+        </div>
+      </div>
+    </div>
+    <!-- Artist select / manual -->
+    <div class="mb-3" data-controller="owner-artist-autocomplete">
+      <%= label_tag "artist_search", "Search for Artist", class: "form-label" %>
+
+      <div class="position-relative">
+        <%= text_field_tag "artist_search", "",
+              placeholder: "Start typing...",
+              class: "form-control pe-5",
+              data: {
+                action: "input->owner-artist-autocomplete#search",
+                owner_artist_autocomplete_target: "input"
+              },
+              autocomplete: "off", autocorrect: "off", autocapitalize: "none",
+              spellcheck: "false", inputmode: "search" %>
+
+        <button type="button"
+                class="btn btn-sm position-absolute top-50 translate-middle-y end-0 me-2 text-muted"
+                style="z-index: 10;"
+                aria-label="Clear artist"
+                data-owner-artist-autocomplete-target="clearButton"
+                data-action="owner-artist-autocomplete#clearSearch">
+          &times;
+        </button>
+
+        <ul class="list-group small mt-2 position-absolute w-100"
+            data-owner-artist-autocomplete-target="results"
+            style="top: 100%; left: 0; max-height: 240px; overflow-y: auto; -webkit-overflow-scrolling: touch; border-radius: .5rem; z-index: 1000;"></ul>
+      </div>
+
+      <%= hidden_field_tag "event[artist_id]", nil,
+            data: { owner_artist_autocomplete_target: "hidden" } %>
+
+      <!-- Picked-artist verification -->
+      <div class="border border-info rounded p-3 bg-info-subtle mt-3 d-none"
+           data-owner-artist-autocomplete-target="details">
+        <h5>Does this look right?</h5>
+
+        <div class="d-flex align-items-start gap-3">
+          <div class="flex-shrink-0" data-owner-artist-autocomplete-target="imageContainer"></div>
+          <div class="flex-grow-1">
+            <p class="mb-1"><strong>Username:</strong>
+              <span data-owner-artist-autocomplete-target="username"></span>
+            </p>
+            <p class="mb-2"><strong>Bio:</strong></p>
+            <p class="text-muted small mb-0" data-owner-artist-autocomplete-target="bio"></p>
+          </div>
+        </div>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input"
+                 type="checkbox"
+                 id="artist_verification"
+                 name="artist_verification"
+                 value="1"
+                 data-owner-artist-autocomplete-target="verification"
+                 data-action="change->owner-artist-autocomplete#toggleSubmit change->conflict-checker#endTimeChanged">
+          <label class="form-check-label" for="artist_verification">
+            <strong>Yes, this is the correct artist for my event</strong>
+          </label>
+        </div>
+      </div>
+
+      <!-- Manual gate -->
+      <div class="form-check mb-3">
+        <input class="form-check-input"
+               type="checkbox"
+               id="artist_gate_checkbox"
+               data-owner-artist-autocomplete-target="gateCheckbox"
+               data-action="change->owner-artist-autocomplete#toggleGate change->conflict-checker#endTimeChanged">
+        <label class="form-check-label" for="artist_gate_checkbox">
+          My Artist isn't on Pickleball yet
+        </label>
+      </div>
+
+      <!-- Manual artist name -->
+      <div class="mb-3 d-none" data-owner-artist-autocomplete-target="manualFieldsWrapper">
+        <%= f.label :artist_name, "Artist Name", class: "form-label" %>
+        <%= f.text_field :artist_name,
+              id: "manual_artist_name",
+              class: "form-control #{'is-invalid' if @event.errors[:artist_name].present?}",
+              data: {
+                owner_artist_autocomplete_target: "manualNameField",
+                action: "input->owner-artist-autocomplete#manualNameChanged input->conflict-checker#endTimeChanged"
+              } %>
+      </div>
+
+      <!-- Category -->
+      <div class="mb-3">
+        <%= f.label :category, class: "form-label" %>
+        <%= f.select :category,
+              Artist::PERFORMANCE_TYPES.map { |type| [type, type] },
+              { prompt: "Select category" },
+              {
+                class: "form-select",
+                required: true,
+                data: {
+                  owner_category_warning_target: "category",
+                  action: "change->owner-category-warning#checkCategory"
+                }
+              } %>
+        <div class="small text-muted mt-1 d-none" data-owner-category-warning-target="warning"></div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-3">
+        <%= f.label :description, class: "form-label" %>
+        <%= f.text_area :description, class: "form-control", placeholder: "Describe the event", rows: 3 %>
+      </div>
+
+      <!-- Date -->
+      <div class="mb-3">
+        <%= f.label :date, class: "form-label" %>
+        <%= f.select :date, [["Select date", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "date",
+              conflict_checker_target: "date",
+              action: "change->time-options#updateStartTimes change->conflict-checker#dateChanged"
+            } %>
+      </div>
+
+      <!-- Start Time -->
+      <div class="mb-3">
+        <%= f.label :start_time, "Start Time", class: "form-label" %>
+        <%= f.select :start_time, [["Select start time", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "startTime",
+              conflict_checker_target: "startTime",
+              action: "change->time-options#updateEndTimes change->conflict-checker#startTimeChanged"
+            } %>
+      </div>
+
+      <!-- End Time -->
+      <div class="mb-3">
+        <%= f.label :end_time, "End Time", class: "form-label" %>
+        <%= f.select :end_time, [["Select end time", ""]], {},
+            class: "form-select", required: true,
+            data: {
+              time_options_target: "endTime",
+              conflict_checker_target: "endTime",
+              action: "change->conflict-checker#endTimeChanged"
+            } %>
+      </div>
+
+      <!-- Conflict banner -->
+      <div class="mb-2" data-conflict-checker-target="flash"></div>
+
+      <!-- Remove the entire Cover UI block and replace with: -->
+      <%= f.hidden_field :cover, value: "0" %>
+      <%= f.hidden_field :cover_amount, value: nil %>
+      <!-- Outdoors -->
+      <div class="form-check mb-4">
+        <%= f.check_box :indoors, { checked: false, class: "form-check-input" }, "0", "1" %>
+        <%= f.label :indoors, "Outdoors?", class: "form-check-label" %>
+      </div>
+
+      <div class="d-grid">
+        <%= f.submit "Create Event",
+              class: "btn btn-primary",
+              disabled: true,
+              data: {
+                owner_artist_autocomplete_target: "submitButton",
+                conflict_checker_target: "submit"
+              } %>
+      </div>
+
+    </div>
+    <!-- End of owner-artist-autocomplete controller -->
+
+    <% if @event.errors[:base].any? %>
+      <div class="text-danger small mt-2"><%= @event.errors[:base].first %></div>
+    <% end %>
+
+  <% end %>
+</div>

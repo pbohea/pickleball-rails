@@ -1,0 +1,271 @@
+<% content_for :title, "Venue Information" %>
+
+<style>
+  .venue-profile-card {
+    border-radius: 24px;
+    background: white;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .venue-image-wrapper {
+    position: relative;
+    display: inline-block;
+    animation: scaleIn 0.8s ease-out 0.2s both;
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .venue-image-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    z-index: -1;
+    opacity: 0.15;
+  }
+
+  .event-card-modern {
+    border-radius: 20px;
+    background: white;
+    border-left: 4px solid #0d6efd;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .event-card-modern:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.2);
+    border-left-width: 6px;
+  }
+
+  .event-time-badge {
+    background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+    padding: 0.5rem 1.25rem;
+    border-radius: 20px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  }
+
+  .section-title {
+    color: #6c757d;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+</style>
+
+<div class="min-vh-100" style="background-color: #f8f9fa;">
+  <div class="px-3 pt-4" style="max-width: 500px; margin: 0 auto;">
+
+    <!-- Venue Profile Card -->
+    <div class="card border-0 venue-profile-card mb-4">
+      <div class="card-body text-center">
+
+        <% if @venue.image.present? %>
+          <div class="venue-image-wrapper mb-3">
+            <img src="<%= url_for(@venue.image) %>" alt="Venue Photo"
+                 class="rounded-circle border border-white border-4"
+                 style="width: 120px; height: 120px; object-fit: cover; box-shadow: 0 12px 30px rgba(13, 110, 253, 0.25);">
+          </div>
+        <% end %>
+
+        <% if @venue.website.present? %>
+          <h4 class="fw-bold mb-2 mt-2 display-6"
+              style="background: linear-gradient(90deg, #0d6efd, #4dabf7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <%= link_to @venue.name, @venue.website,
+                target: "_blank", rel: "noopener",
+                class: "text-decoration-none" %>
+          </h4>
+        <% else %>
+          <h4 class="fw-bold mb-2 mt-2 display-6"
+              style="background: linear-gradient(90deg, #0d6efd, #4dabf7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <%= @venue.name %>
+          </h4>
+        <% end %>
+
+        <% if @venue.full_address.present? %>
+          <p class="mb-2">
+            <%= @venue.full_address %>
+          </p>
+        <% end %>
+
+        <p class="text-muted mt-3">
+          <%= @venue.category %>
+        </p>
+
+        <turbo-frame id="follow_button_<%= @venue.id %>">
+          <%= render partial: "venues/follow_button", locals: { venue: @venue } %>
+        </turbo-frame>
+
+        <!-- map button at bottom -->
+        <% if @venue.latitude.present? && @venue.longitude.present? %>
+          <div>
+            <!-- Mobile Apple Maps Button -->
+            <div class="d-block d-md-none mt-2">
+              <%= link_to "Map",
+                    "http://maps.apple.com/?q=#{CGI.escape(@venue.name)}&ll=#{@venue.latitude},#{@venue.longitude}&z=17",
+                    class: "btn btn-sm btn-outline-primary" %>
+            </div>
+
+            <!-- Web/Desktop Google Maps Button -->
+            <div class="d-none d-md-block mt-2">
+              <%= link_to "Map",
+                    "https://www.google.com/maps/search/#{CGI.escape(@venue.name)}/@#{@venue.latitude},#{@venue.longitude},17z",
+                    class: "btn btn-sm btn-outline-primary",
+                    target: "_blank",
+                    rel: "noopener noreferrer" %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <h5 class="text-center section-title">Upcoming Events</h5>
+
+    <% if @upcoming_events.any? %>
+      <% @upcoming_events.each do |event| %>
+      <% db_artists   = event_db_artists(event) %>
+      <% manual_names = event_manual_names(event) %>
+        <div class="card event-card-modern mb-3"
+             data-controller="event-card"
+             data-event-card-url-value="<%= event_path(event) %>"
+             data-action="click->event-card#goToEvent">
+
+          <div class="card-body text-center p-3">
+            <div class="d-inline-block event-time-badge text-white mb-2"
+                 style="font-size: 0.9rem;">
+              <% st = event.starts_at_local; et = event.ends_at_local %>
+              <% today_label = (st.to_date == st.time_zone.today) ? "Today" : st.strftime("%A, %b %-d") %>
+              <i class="bi bi-clock me-1"></i>
+              <%= today_label %> •
+              <%= st.strftime("%-I:%M %p") %> -
+              <%= et.strftime("%-I:%M %p") %>
+            </div>
+            <br>
+            <small>
+              <div class="mb-0">
+                <% lineup_bits = [] %>
+
+                <% db_artists.each do |a| %>
+                  <% lineup_bits << link_to(a.username, artist_path(a),
+                                            class: "text-decoration-none text-primary fw-semibold",
+                                            data: { turbo_frame: "_top" }) %>
+                <% end %>
+
+                <% manual_names.each do |name| %>
+                  <% next if name.to_s.strip.blank? %>
+                  <% lineup_bits << content_tag(:span, name, class: "text-muted fw-semibold") %>
+                <% end %>
+
+                <%= safe_join(lineup_bits, " • ".html_safe) %>
+              </div>
+            </small>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="text-muted text-center">No upcoming events.</p>
+    <% end %>
+
+    <!-- Past Events -->
+    <% if @past_events.any? %>
+      <h5 class="text-center section-title mt-5">Recent Events</h5>
+
+      <% @past_events.each do |event| %>
+      <% db_artists   = event_db_artists(event) %>
+      <% manual_names = event_manual_names(event) %>
+        <div class="card mb-3 shadow-sm border-0 rounded-4" style="background-color: #ffffff;">
+          <div class="card-body text-center p-3"
+               data-controller="event-card"
+               data-event-card-url-value="<%= event_path(event) %>"
+               data-action="click->event-card#goToEvent"
+               style="cursor: pointer;">
+
+            <div class="d-inline-block px-3 py-1 rounded-pill bg-light text-dark fw-semibold mb-2"
+                 style="font-size: 0.9rem;">
+              <% st = event.starts_at_local; et = event.ends_at_local %>
+              <i class="bi bi-clock me-1"></i>
+              <%= st.strftime("%A, %b %-d") %> • 
+              <%= st.strftime("%-I:%M %p") %> - 
+              <%= et.strftime("%-I:%M %p") %>
+            </div>
+            <br>
+            <small>
+             <div class="mb-0">
+              <% lineup_bits = [] %>
+
+              <% db_artists.each do |a| %>
+                <% lineup_bits << link_to(a.username, artist_path(a),
+                                          class: "text-decoration-none text-primary fw-semibold",
+                                          data: { turbo_frame: "_top" }) %>
+              <% end %>
+
+              <% manual_names.each do |name| %>
+                <% next if name.to_s.strip.blank? %>
+                <% lineup_bits << content_tag(:span, name, class: "text-muted fw-semibold") %>
+              <% end %>
+
+              <%= safe_join(lineup_bits, " • ".html_safe) %>
+            </div>
+            </small>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+    <% end %>
+
+    <!-- Venue Management (if applicable) -->
+    <% if can_modify_venue?(@venue) %>
+      <div class="card border-0 venue-profile-card mb-4">
+        <div class="card-body">
+          <h5 class="text-center section-title">Venue Owner Management</h5>
+          <div class="row g-3 justify-content-center">
+            
+            <div class="col-auto">
+              <%= link_to new_event_path, 
+                          class: "btn btn-success rounded-pill px-4 py-2 fw-semibold",
+                          style: "box-shadow: 0 4px 15px rgba(25, 135, 84, 0.4);" do %>
+                <i class="bi bi-plus-circle me-2"></i>Add Event
+              <% end %>
+            </div>
+
+            <div class="col-auto">
+              <%= link_to edit_venue_path(@venue), 
+                          class: "btn btn-info rounded-pill px-4 py-2 fw-semibold",
+                          style: "box-shadow: 0 4px 15px rgba(13, 202, 240, 0.4);" do %>
+                <i class="bi bi-building me-2"></i>Edit Venue
+              <% end %>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+  </div>
+</div>

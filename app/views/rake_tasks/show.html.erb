@@ -1,0 +1,9 @@
+<% if flash[:notice] %>
+  <p><%= flash[:notice] %></p>
+<% end %>
+
+<form action="/run_task">
+  <button>
+    Run the task
+  </button>
+</form>

@@ -1,0 +1,82 @@
+<!--   Upcoming Events -->
+
+<h5 class="text-center text-muted mb-3">Upcoming Events</h5>
+<% if @upcoming_events.any? %>
+  <% @upcoming_events.each do |event| %>
+    <div class="card event-card  shadow-sm rounded-4 mb-3" style="background-color: #ffffff;">
+      <div class="card-body text-center p-3"
+           data-controller="event-card"
+           data-event-card-url-value="<%= event_path(event) %>"
+           data-action="click->event-card#goToEvent"
+           style="cursor: pointer;">
+
+        <% st = event.starts_at_local; et = event.ends_at_local %>
+        <div class="d-inline-block px-3 py-1 rounded-pill bg-primary text-white fw-semibold mb-2"
+             style="font-size: 0.9rem; background: linear-gradient(90deg, #0d6efd, #4dabf7) !important;">
+          <i class="bi bi-clock me-1"></i>
+          <%= st.strftime("%A, %b %-d") %> •
+          <%= st.strftime("%-I:%M %p") %> -
+          <%= et.strftime("%-I:%M %p") %>
+        </div>
+        <br>
+        <small>
+          at <%= link_to event.venue.name, venue_path(event.venue),
+                          class: "text-decoration-none",
+                          onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %>
+        </small>
+      </div>
+    </div>
+  <% end %>
+<% else %>
+  <p class="text-muted text-center">No upcoming events.</p>
+<% end %>
+
+<!--   Past Events -->
+<% if @past_events.any? %>
+  <h5 class="text-center text-muted mb-3 mt-5">Recent Events</h5>
+
+  <% @past_events.each do |event| %>
+    <div class="card mb-3 shadow-sm rounded-4" style="background-color: #ffffff;">
+      <div class="card-body text-center p-3"
+           data-controller="event-card"
+           data-event-card-url-value="<%= event_path(event) %>"
+           data-action="click->event-card#goToEvent"
+           style="cursor: pointer;">
+
+        <% st = event.starts_at_local; et = event.ends_at_local %>
+        <div class="d-inline-block px-3 py-1 rounded-pill bg-light text-dark fw-semibold mb-2"
+             style="font-size: 0.9rem;">
+          <i class="bi bi-clock me-1"></i>
+          <%= st.strftime("%A, %b %-d") %> •
+          <%= st.strftime("%-I:%M %p") %> -
+          <%= et.strftime("%-I:%M %p") %>
+        </div>
+        <br>
+        <small>
+          at <%= link_to event.venue.name, venue_path(event.venue),
+                          class: "text-decoration-none",
+                          onclick: "event.stopPropagation(); event.stopImmediatePropagation();" %>
+        </small>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+
+<style>
+  /* Blue accent + hover for Upcoming Event cards only */
+  .card.event-card {
+    position: relative;
+    overflow: hidden;               /* keeps stripe clean with rounded corners */
+    background: #ffffff;
+    border-left: 6px solid #0d6efd; /* blue accent stripe */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card.event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+  }
+  .card.event-card:active {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+  }
+</style>

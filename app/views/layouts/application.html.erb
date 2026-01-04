@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <% if hotwire_native_app? %>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <% end %>
+
+    <title><%= content_for(:title) || "Pickleball" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-itunes-app" content="app-id=6753730148, app-argument=https://pickleball.co">
+    <meta name="facebook-domain-verification" content="uk2j7vnd9b577s7745ez6wkaqq403k" />
+
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= render "shared/head_assets" %>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZKCZDT1DBJ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-ZKCZDT1DBJ');
+    </script>
+
+    <!-- App styles -->
+    <%= stylesheet_link_tag "application" %>
+    <% if hotwire_native_app? %>
+      <%= stylesheet_link_tag "native" %>
+    <% end %>
+    <%= javascript_importmap_tags %>
+    <%= yield :head %>
+  </head>
+
+  <body class="bg-light min-vh-100 d-flex flex-column">
+    <%= render "shared/navbar" %>
+    <%= render "shared/foot_assets" %>
+
+    <%# <% if Rails.env.development? %>
+    <%#   <div style="color: red; text-align: center;">
+    <%#     DEV ENVIRONMENT 
+    <%#   </div>
+    <%# <% end %>
+
+    <div id="flash-overlay" style="position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 1050; width: auto; max-width: 90%;">
+      <% flash.each do |key, message| %>
+        <div
+          class="alert alert-<%= key == "notice" ? "success" : "danger" %> alert-dismissible fade show text-center shadow"
+          role="alert"
+          data-controller="flash"
+          data-flash-timeout-value="3000">
+          <%= message %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      <% end %>
+    </div>
+
+    <main class="flex-grow-1 d-flex flex-column">
+      <%= yield %>
+    </div>
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+<% content_for :title, "Artist Sign In" %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h2 class="card-title text-center text-primary mb-2">Artist Login</h2>
+          <p class="text-center text-muted small mb-3">
+            Or sign in as an
+            <%= link_to "User,", new_user_session_path,
+                  class: "text-primary text-decoration-none" %>
+            <%= link_to "Promoter,", new_promoter_session_path,
+                  class: "text-primary text-decoration-none" %>
+            
+            or
+            <%= link_to "Owner", new_owner_session_path,
+                  class: "text-primary text-decoration-none" %>
+            instead
+            </p>
+
+          <%= form_with scope: :artist, url: session_path(:artist), method: :post, data: { turbo: false } do |f| %>
+            <div class="mb-3">
+              <%= f.label :email, class: "form-label" %>
+              <%= f.email_field :email, autofocus: true, autocomplete: "email", required: true, class: "form-control" %>
+            </div>
+
+            <div class="mb-3">
+              <%= f.label :password, class: "form-label" %>
+              <%= f.password_field :password, autocomplete: "current-password", required: true, class: "form-control" %>
+            </div>
+
+            <div class="mb-3 form-check">
+              <%= f.check_box :remember_me, class: "form-check-input", checked: true %>
+              <%= f.label :remember_me, class: "form-check-label" %>
+            </div>
+
+            <div class="d-grid mb-3">
+              <%= f.submit "Log In", class: "btn btn-primary text-white" %>
+            </div>
+          <% end %>
+
+          <div class="text-center">
+            <small>
+              New artist?
+              <%= link_to "Sign up", new_artist_registration_path, class: "link-primary" %>
+              <br>
+              <%= link_to "Forgot your password?", new_artist_password_path, class: "link-secondary" %>
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
