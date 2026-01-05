@@ -1,0 +1,60 @@
+<% content_for :title, "Video ##{@video.id}" %>
+
+<div class="container py-5">
+  <div class="page-shell">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="page-header__eyebrow">Video</div>
+        <h1 class="page-title mb-1"><%= @video.title.presence || "Video ##{@video.id}" %></h1>
+        <p class="page-subtitle mb-0">Uploaded <%= @video.uploaded_at&.strftime("%b %d, %Y at %I:%M %p") || @video.created_at.strftime("%b %d, %Y") %></p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <%= link_to "Upload another", new_video_path, class: "btn btn-primary" %>
+        <%= link_to "Dashboard", dashboard_path, class: "btn btn-outline-secondary" %>
+      </div>
+    </div>
+
+    <% if @video.notes.present? %>
+      <div class="page-card page-card--soft">
+        <h5>Your notes</h5>
+        <p class="mb-0"><%= simple_format(@video.notes) %></p>
+      </div>
+    <% end %>
+
+    <div data-controller="poll" data-poll-url-value="<%= status_video_path(@video) %>" data-poll-interval-value="4000">
+      <turbo-frame id="batch">
+        <%= render "status", video: @video, analysis: @analysis %>
+      </turbo-frame>
+    </div>
+
+    <% if @video.original_video.attached? %>
+      <div class="page-card">
+        <h5>Original video</h5>
+        <video controls preload="metadata" class="w-100 rounded">
+          <source src="<%= url_for(@video.original_video) %>">
+        </video>
+      </div>
+    <% end %>
+
+    <% if @analysis&.summary.present? %>
+      <div class="page-card">
+        <h4>Coach feedback</h4>
+        <p><%= simple_format(@analysis.summary) %></p>
+      </div>
+    <% end %>
+
+    <% if @conversation&.messages&.any? %>
+      <div class="page-card">
+        <h5>Conversation</h5>
+        <div class="themed-list mt-3">
+          <% @conversation.messages.order(created_at: :asc).each do |message| %>
+            <div class="list-group-item">
+              <strong class="text-uppercase"><%= message.role %>:</strong>
+              <div><%= simple_format(message.content) %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -41,7 +41,15 @@
   </head>
 
   <body class="bg-light min-vh-100 d-flex flex-column">
-    <%= render "shared/navbar" %>
+    <% unless hotwire_native_app? %>
+      <%= render "shared/navbar" %>
+    <% end %>
+    <% if hotwire_native_app? %>
+      <div
+        data-controller="bridge--icon-button"
+        data-bridge--icon-button-system-name-value="person.circle"
+        data-bridge--icon-button-url-value="<%= menu_path %>"></div>
+    <% end %>
     <%= render "shared/foot_assets" %>
 
     <%# <% if Rails.env.development? %>

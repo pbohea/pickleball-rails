@@ -1,0 +1,22 @@
+<% status_value =
+  if video.failed? || analysis&.failed?
+    "failed"
+  elsif analysis&.complete? || video.analyzed?
+    "complete"
+  else
+    "running"
+  end
+%>
+
+<div class="page-card page-card--soft" data-batch-status="<%= status_value %>">
+  <% if status_value == "running" %>
+    <div class="status-card__title">Analyzing your video</div>
+    <p class="text-muted mb-0">This may take a couple of minutes. We will refresh automatically.</p>
+  <% elsif status_value == "complete" %>
+    <div class="status-card__title">Analysis complete</div>
+    <p class="text-muted mb-0">Scroll down to see your feedback.</p>
+  <% else %>
+    <div class="status-card__title text-danger">Analysis failed</div>
+    <p class="text-muted mb-0">Please try uploading again.</p>
+  <% end %>
+</div>

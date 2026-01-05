@@ -1,0 +1,36 @@
+<% content_for :title, "Dashboard" %>
+
+<div class="container py-5">
+  <div class="page-shell">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="page-header__eyebrow">Dashboard</div>
+        <h1 class="page-title">Your analysis timeline</h1>
+        <p class="page-subtitle mb-0">Track every upload and revisit your coaching notes.</p>
+      </div>
+      <%= link_to "Upload a video", new_video_path, class: "btn btn-primary" %>
+    </div>
+
+    <% if @videos.any? %>
+      <div class="themed-list">
+        <% @videos.each do |video| %>
+          <%= link_to video_path(video), class: "list-group-item list-group-item-action" do %>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold"><%= video.title.presence || "Video ##{video.id}" %></div>
+                <small class="text-muted"><%= video.created_at.strftime("%b %d, %Y") %></small>
+              </div>
+              <span class="badge badge-soft text-uppercase"><%= video.status %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="page-card page-card--soft">
+        <h4>No uploads yet</h4>
+        <p class="text-muted mb-3">Start with a clip and we will guide the next steps.</p>
+        <%= link_to "Upload your first video", new_video_path, class: "btn btn-outline-primary" %>
+      </div>
+    <% end %>
+  </div>
+</div>

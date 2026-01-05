@@ -1,9 +1,10 @@
-<nav id="main-navbar" class="navbar bg-body-tertiary">
+<nav id="main-navbar" class="navbar site-navbar">
   <div class="container-fluid">
     <a class="navbar-brand" href="/">Pickleball</a>
 
     <div class="d-flex gap-2">
       <% if user_signed_in? %>
+        <%= link_to "Upload", new_video_path, class: "btn btn-primary" %>
         <%= link_to "Account", edit_user_registration_path, class: "btn btn-outline-secondary", data: { turbo: false } %>
         <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "btn btn-outline-danger", data: { turbo: false } %>
       <% else %>

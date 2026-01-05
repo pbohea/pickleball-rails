@@ -1,6 +1,5 @@
 <div class="login-container">
   <h2>Create Your Account</h2>
-<h2> is this it? <h2>
   <%= form_with scope: :user, url: registration_path(:user), method: :post, class: "login-form", data: { turbo: false } do |f| %>
     <div class="form-group">
       <%= f.label :name %>
@@ -29,6 +28,6 @@
 
   <div class="signup-link">
     Already have an account?
-    <%= link_to "Log in", login_path %>
+    <%= link_to "Log in", new_user_session_path %>
   </div>
 </div>
