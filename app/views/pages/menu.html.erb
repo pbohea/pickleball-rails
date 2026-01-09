@@ -4,21 +4,13 @@
   <div class="page-shell">
     <div>
       <div class="page-header__eyebrow">Menu</div>
-      <h1 class="page-title">Quick actions</h1>
-      <p class="page-subtitle mb-0">Jump to your dashboard, upload, or account settings.</p>
+      <h1 class="page-title">Welcome</h1>
+      <p class="page-subtitle mb-0">Create an account or sign in to access your dashboard.</p>
     </div>
 
     <div class="themed-list">
-      <%= link_to "Dashboard", dashboard_path, class: "list-group-item list-group-item-action" %>
-      <%= link_to "Upload a video", new_video_path, class: "list-group-item list-group-item-action" %>
-
-      <% if user_signed_in? %>
-        <%= link_to "Account", edit_user_registration_path, class: "list-group-item list-group-item-action", data: { turbo: false } %>
-        <%= button_to "Sign Out", destroy_user_session_path, method: :delete, class: "list-group-item list-group-item-action text-start", data: { turbo: false } %>
-      <% else %>
-        <%= link_to "Sign In", new_user_session_path, class: "list-group-item list-group-item-action", data: { turbo: false } %>
-        <%= link_to "Sign Up", new_user_registration_path, class: "list-group-item list-group-item-action", data: { turbo: false } %>
-      <% end %>
+      <%= link_to "Sign In", new_user_session_path, class: "list-group-item list-group-item-action", data: { turbo: false } %>
+      <%= link_to "Sign Up", new_user_registration_path, class: "list-group-item list-group-item-action", data: { turbo: false } %>
     </div>
   </div>
 </div>

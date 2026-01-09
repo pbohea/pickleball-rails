@@ -1,0 +1,31 @@
+<% analysis = local_assigns[:analysis] %>
+<% status_value =
+  if video.failed? || analysis&.failed?
+    "failed"
+  elsif analysis&.complete? || video.analyzed?
+    "complete"
+  elsif analysis&.running? || video.processing?
+    "processing"
+  else
+    "uploaded"
+  end
+%>
+<% percent =
+  case status_value
+  when "uploaded" then 20
+  when "processing" then 65
+  else 100
+  end
+%>
+
+<div class="status-bar" data-status="<%= status_value %>">
+  <div class="status-bar__meta">
+    <span class="status-bar__label">
+      <%= status_value == "complete" ? "Complete" : status_value.capitalize %>
+    </span>
+    <span class="status-bar__percent"><%= percent %>%</span>
+  </div>
+  <div class="status-bar__track">
+    <div class="status-bar__fill" style="width: <%= percent %>%"></div>
+  </div>
+</div>

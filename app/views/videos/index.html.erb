@@ -11,25 +11,67 @@
       <%= link_to "Upload a video", new_video_path, class: "btn btn-primary" %>
     </div>
 
-    <% if @videos.any? %>
-      <div class="themed-list">
-        <% @videos.each do |video| %>
-          <%= link_to video_path(video), class: "list-group-item list-group-item-action" do %>
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-semibold"><%= video.title.presence || "Video ##{video.id}" %></div>
-                <small class="text-muted"><%= video.created_at.strftime("%b %d, %Y") %></small>
-              </div>
-              <span class="badge badge-soft text-uppercase"><%= video.status %></span>
-            </div>
-          <% end %>
-        <% end %>
+    <% if @processing_videos.any? || @finished_videos.any? %>
+      <div class="dashboard-tabs">
+        <%= link_to "Processing", dashboard_path(tab: "processing"), class: "dashboard-tabs__item #{'is-active' if @active_tab == 'processing'}" %>
+        <%= link_to "Finished", dashboard_path(tab: "finished"), class: "dashboard-tabs__item #{'is-active' if @active_tab == 'finished'}" %>
       </div>
+
+      <% if @active_tab == "processing" %>
+        <% if @processing_videos.any? %>
+          <div class="themed-list">
+            <% @processing_videos.each do |video| %>
+              <%= link_to video_path(video), class: "list-group-item list-group-item-action" do %>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold"><%= video.title.presence || "Video ##{video.id}" %></div>
+                    <small class="text-muted"><%= video.created_at.strftime("%b %d, %Y") %></small>
+                  </div>
+                  <span class="badge badge-soft text-uppercase"><%= video.status %></span>
+                </div>
+                <%= render "status_bar", video: video %>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="page-card page-card--soft">
+            <h4>No uploads processing</h4>
+            <p class="text-muted mb-0">When you upload a video, it will appear here while we analyze it.</p>
+          </div>
+        <% end %>
+      <% else %>
+        <% if @finished_videos.any? %>
+          <div class="themed-list">
+            <% @finished_videos.each do |video| %>
+              <%= link_to video_path(video), class: "list-group-item list-group-item-action" do %>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <div class="fw-semibold"><%= video.title.presence || "Video ##{video.id}" %></div>
+                    <small class="text-muted"><%= video.created_at.strftime("%b %d, %Y") %></small>
+                  </div>
+                  <span class="badge badge-soft text-uppercase">complete</span>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="page-card page-card--soft">
+            <h4>No finished analyses yet</h4>
+            <p class="text-muted mb-0">Completed analyses will land here with your feedback.</p>
+          </div>
+        <% end %>
+      <% end %>
     <% else %>
       <div class="page-card page-card--soft">
         <h4>No uploads yet</h4>
         <p class="text-muted mb-3">Start with a clip and we will guide the next steps.</p>
         <%= link_to "Upload your first video", new_video_path, class: "btn btn-outline-primary" %>
+      </div>
+    <% end %>
+
+    <% if user_signed_in? %>
+      <div class="text-center mt-4">
+        <%= link_to "Sign Out", destroy_user_session_path, method: :delete, class: "text-decoration-underline", data: { turbo: false } %>
       </div>
     <% end %>
   </div>

@@ -37,6 +37,8 @@ class VideoAnalysisJob < ApplicationJob
     conversation.messages.create!(role: :assistant, content: summary, metadata: {})
 
     video.update!(status: :analyzed, processed_at: Time.current)
+
+    PushNotifications::ApnsSender.new.send_analysis_complete(user: video.user, video: video)
   rescue StandardError => e
     video&.update(status: :failed)
     analysis&.update(status: :failed)

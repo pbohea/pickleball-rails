@@ -1,9 +1,12 @@
 class VideosController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_owner
   before_action :set_video, only: [:show, :status]
 
   def index
-    @videos = @owner.videos.order(created_at: :desc)
+    @processing_videos = @owner.videos.where(status: [:uploaded, :processing]).order(created_at: :desc)
+    @finished_videos = @owner.videos.where(status: :analyzed).order(created_at: :desc)
+    @active_tab = params[:tab].presence_in(%w[processing finished]) || "processing"
   end
 
   def new
@@ -47,7 +50,7 @@ class VideosController < ApplicationController
   private
 
   def set_owner
-    @owner = user_signed_in? ? current_user : guest_user
+    @owner = current_user
   end
 
   def set_video
@@ -56,19 +59,5 @@ class VideosController < ApplicationController
 
   def video_params
     params.fetch(:video, {}).permit(:title, :notes, :source, :original_video)
-  end
-
-  def guest_user
-    if session[:guest_user_id].present?
-      user = User.find_by(id: session[:guest_user_id])
-      return user if user
-    end
-
-    user = User.create!(
-      email: "guest-#{SecureRandom.uuid}@example.com",
-      password: SecureRandom.hex(16)
-    )
-    session[:guest_user_id] = user.id
-    user
   end
 end

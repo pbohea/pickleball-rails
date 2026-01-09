@@ -1,33 +1,39 @@
-<div class="login-container">
-  <h2>Create Your Account</h2>
-  <%= form_with scope: :user, url: registration_path(:user), method: :post, class: "login-form", data: { turbo: false } do |f| %>
-    <div class="form-group">
-      <%= f.label :name %>
-      <%= f.text_field :name, required: true %>
+<div class="auth-page">
+  <div class="login-container">
+    <div class="auth-header">
+      <div class="auth-eyebrow">Pickleball</div>
+      <h2 class="auth-title">Create your account</h2>
+      <p class="auth-subtitle">Start a new analysis and get coaching notes in minutes.</p>
     </div>
 
-    <div class="form-group">
-      <%= f.label :email %>
-      <%= f.email_field :email, autocomplete: "email", required: true %>
-    </div>
+    <%= form_with scope: :user, url: registration_path(:user), method: :post, class: "login-form", data: { turbo: false } do |f| %>
+      <div class="form-group">
+        <%= f.label :name %>
+        <%= f.text_field :name, required: true %>
+      </div>
 
-    <div class="form-group">
-      <%= f.label :password %>
-      <%= f.password_field :password, autocomplete: "new-password", required: true %>
-    </div>
+      <div class="form-group">
+        <%= f.label :email %>
+        <%= f.email_field :email, autocomplete: "email", required: true %>
+      </div>
 
-    <div class="form-group">
-      <%= f.label :password_confirmation, "Confirm Password" %>
-      <%= f.password_field :password_confirmation, required: true %>
-    </div>
+      <div class="form-group">
+        <%= f.label :password %>
+        <%= f.password_field :password, autocomplete: "new-password", required: true %>
+      </div>
 
-    <div class="form-group">
-      <%= f.submit "Sign Up", class: "btn-login" %>
-    </div>
-  <% end %>
+      <div class="form-group">
+        <%= f.label :password_confirmation, "Confirm Password" %>
+        <%= f.password_field :password_confirmation, required: true %>
+      </div>
 
-  <div class="signup-link">
-    Already have an account?
-    <%= link_to "Log in", new_user_session_path %>
+      <div class="form-group">
+        <%= f.submit "Sign Up", class: "btn-login" %>
+      </div>
+    <% end %>
+
+    <div class="auth-footer">
+      Already have an account? <%= link_to "Log in", new_user_session_path %>
+    </div>
   </div>
 </div>

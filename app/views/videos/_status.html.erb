@@ -11,12 +11,15 @@
 <div class="page-card page-card--soft" data-batch-status="<%= status_value %>">
   <% if status_value == "running" %>
     <div class="status-card__title">Analyzing your video</div>
+    <%= render "status_bar", video: video, analysis: analysis %>
     <p class="text-muted mb-0">This may take a couple of minutes. We will refresh automatically.</p>
   <% elsif status_value == "complete" %>
     <div class="status-card__title">Analysis complete</div>
+    <%= render "status_bar", video: video, analysis: analysis %>
     <p class="text-muted mb-0">Scroll down to see your feedback.</p>
   <% else %>
     <div class="status-card__title text-danger">Analysis failed</div>
+    <%= render "status_bar", video: video, analysis: analysis %>
     <p class="text-muted mb-0">Please try uploading again.</p>
   <% end %>
 </div>

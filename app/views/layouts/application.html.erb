@@ -48,7 +48,10 @@
       <div
         data-controller="bridge--icon-button"
         data-bridge--icon-button-system-name-value="person.circle"
-        data-bridge--icon-button-url-value="<%= menu_path %>"></div>
+        data-bridge--icon-button-url-value="<%= user_signed_in? ? dashboard_path : menu_path %>"></div>
+    <% end %>
+    <% if hotwire_native_app? && user_signed_in? %>
+      <div data-controller="bridge--notification-token"></div>
     <% end %>
     <%= render "shared/foot_assets" %>
 

@@ -28,4 +28,5 @@ class User < ApplicationRecord
   has_many :conversations, dependent: :destroy
   has_many :data_export_requests, dependent: :destroy
   has_many :data_deletion_requests, dependent: :destroy
+  has_many :notification_tokens, dependent: :destroy
 end

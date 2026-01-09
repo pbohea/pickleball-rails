@@ -1,5 +1,6 @@
 class Users::SessionsController < Devise::SessionsController
   # before_action :configure_sign_in_params, only: [:create]
+  before_action :force_remember_me, only: [:create]
 
   def create
     super do |user|
@@ -38,5 +39,10 @@ class Users::SessionsController < Devise::SessionsController
   def track_user_session(user)
     cookies.permanent.encrypted[:user_id] = user.id
     Current.user = user if defined?(Current)
+  end
+
+  def force_remember_me
+    params[:user] ||= {}
+    params[:user][:remember_me] = "1"
   end
 end
