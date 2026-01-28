@@ -12,7 +12,7 @@ environment ENV.fetch("RAILS_ENV", "production")
 
 # Bind: Cloud Run uses PORT; fallback to Unix socket for Nginx/local
 app_dir = File.expand_path("../..", __FILE__)
-if ENV["PORT"].present?
+if ENV["PORT"] && !ENV["PORT"].empty?
   port ENV.fetch("PORT")
 else
   bind "unix://#{app_dir}/tmp/sockets/puma.sock"
