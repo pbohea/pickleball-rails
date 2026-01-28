@@ -8,14 +8,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/js/all.min.js" defer></script>
 
 <!-- Icons -->
-<link rel="icon" href="/favicon.ico">
-<%= favicon_link_tag 'favicon-32x32.png', type: 'image/png', sizes: '32x32' %>
-<%= favicon_link_tag 'favicon-16x16.png', type: 'image/png', sizes: '16x16' %>
-<%= favicon_link_tag 'favicon.ico' %>
+<% icon_version = "20260128" %>
+<link rel="icon" href="<%= asset_path "favicon.ico?v=#{icon_version}" %>">
+<%= favicon_link_tag "favicon-32x32.png?v=#{icon_version}", type: "image/png", sizes: "32x32" %>
+<%= favicon_link_tag "favicon-16x16.png?v=#{icon_version}", type: "image/png", sizes: "16x16" %>
+<%= favicon_link_tag "favicon.ico?v=#{icon_version}" %>
 
-<link rel="apple-touch-icon" href="<%= asset_path 'apple-touch-icon.png' %>">
-<link rel="icon" type="image/png" sizes="192x192" href="<%= asset_path 'android-chrome-192x192.png' %>">
-<link rel="icon" type="image/png" sizes="512x512" href="<%= asset_path 'android-chrome-512x512.png' %>">
+<link rel="apple-touch-icon" href="<%= asset_path "apple-touch-icon.png?v=#{icon_version}" %>">
+<link rel="icon" type="image/png" sizes="192x192" href="<%= asset_path "android-chrome-192x192.png?v=#{icon_version}" %>">
+<link rel="icon" type="image/png" sizes="512x512" href="<%= asset_path "android-chrome-512x512.png?v=#{icon_version}" %>">
 <meta name="theme-color" content="#000000">
 
 <!-- Google Fonts -->
