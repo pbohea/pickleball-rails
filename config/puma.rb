@@ -10,9 +10,13 @@ workers Integer(ENV.fetch("WEB_CONCURRENCY", 1))
 # Environment
 environment ENV.fetch("RAILS_ENV", "production")
 
-# Bind: Unix socket for Nginx (create this dir in Step 2)
+# Bind: Cloud Run uses PORT; fallback to Unix socket for Nginx/local
 app_dir = File.expand_path("../..", __FILE__)
-bind "unix://#{app_dir}/tmp/sockets/puma.sock"
+if ENV["PORT"].present?
+  port ENV.fetch("PORT")
+else
+  bind "unix://#{app_dir}/tmp/sockets/puma.sock"
+end
 
 # PID/State files (handy for tooling)
 pidfile  "#{app_dir}/tmp/pids/puma.pid"

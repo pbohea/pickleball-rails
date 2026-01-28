@@ -35,17 +35,23 @@ Rails.application.configure do
   config.active_job.queue_adapter = :solid_queue
 
   # --- Mailer (Amazon SES SMTP, like your dev setup) ---
-  config.action_mailer.raise_delivery_errors = true
-  config.action_mailer.perform_deliveries = true
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    address:              ENV.fetch("SES_SMTP_HOST"),
-    port:                 587,
-    user_name:            ENV.fetch("SES_SMTP_USERNAME"),
-    password:             ENV.fetch("SES_SMTP_PASSWORD"),
-    authentication:       :login,
-    enable_starttls_auto: true
-  }
+  if ENV["SES_SMTP_HOST"].present?
+    config.action_mailer.raise_delivery_errors = true
+    config.action_mailer.perform_deliveries = true
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address:              ENV.fetch("SES_SMTP_HOST"),
+      port:                 587,
+      user_name:            ENV.fetch("SES_SMTP_USERNAME"),
+      password:             ENV.fetch("SES_SMTP_PASSWORD"),
+      authentication:       :login,
+      enable_starttls_auto: true
+    }
+  else
+    # Allow asset precompile/builds without SES env vars.
+    config.action_mailer.perform_deliveries = false
+    config.action_mailer.delivery_method = :test
+  end
   config.action_mailer.default_url_options = {
     host: ENV.fetch("APP_HOST", "pickleball.co"),
     protocol: "https"
