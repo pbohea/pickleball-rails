@@ -18,9 +18,11 @@ class VideosController < ApplicationController
     @video.uploaded_at = Time.current
 
     if @video.save
+      Rails.logger.info("Video create success id=#{@video.id} attached=#{@video.original_video.attached?}")
       VideoAnalysisJob.perform_later(@video.id)
       redirect_to @video, notice: "Upload received. We are analyzing your video now."
     else
+      Rails.logger.warn("Video create failed errors=#{@video.errors.full_messages.join(", ")}")
       render :new, status: :unprocessable_entity
     end
   end
@@ -30,9 +32,11 @@ class VideosController < ApplicationController
     @video.uploaded_at = Time.current
 
     if @video.save
+      Rails.logger.info("Video native upload success id=#{@video.id} attached=#{@video.original_video.attached?}")
       VideoAnalysisJob.perform_later(@video.id)
       render json: { video_id: @video.id, redirect_url: video_url(@video) }
     else
+      Rails.logger.warn("Video native upload failed errors=#{@video.errors.full_messages.join(", ")}")
       render json: { errors: @video.errors.full_messages }, status: :unprocessable_entity
     end
   end

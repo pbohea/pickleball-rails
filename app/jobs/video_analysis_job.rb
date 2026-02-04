@@ -6,10 +6,11 @@ class VideoAnalysisJob < ApplicationJob
     analysis = nil
     video.update!(status: :processing)
 
-    raise "Missing original video" unless video.original_video.attached?
-
     desc = video.notes.to_s.strip
-    raise "Missing target description (notes)" if desc.blank?
+    if desc.blank?
+      video.update!(status: :failed)
+      raise "Missing target description (notes)"
+    end
 
     analysis = video.analyses.create!(
       status: :running,
@@ -17,6 +18,20 @@ class VideoAnalysisJob < ApplicationJob
       model_version: "ready-score-v1",
       cv_results: {}
     )
+
+    Rails.logger.info("VideoAnalysisJob start video_id=#{video.id} analysis_id=#{analysis.id} attached=#{video.original_video.attached?}")
+
+    unless video.original_video.attached?
+      attempts = analysis.cv_results["enqueue_attempts"].to_i + 1
+      analysis.update!(cv_results: analysis.cv_results.merge("enqueue_attempts" => attempts))
+      if attempts <= 10
+        VideoAnalysisJob.set(wait: 30.seconds).perform_later(video.id)
+        return
+      end
+      analysis.update!(status: :failed)
+      video.update!(status: :failed)
+      return
+    end
 
     analysis.analysis_events.create!(
       event_type: "analysis_started",
