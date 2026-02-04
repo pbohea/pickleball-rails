@@ -25,8 +25,8 @@ state_path "#{app_dir}/tmp/pids/puma.state"
 # Preload for copy-on-write memory savings
 preload_app!
 
-# Don’t run Solid Queue inside Puma in prod; we have a separate service
-# plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
+# Run Solid Queue inside Puma when explicitly enabled
+plugin :solid_queue if ENV["SOLID_QUEUE_IN_PUMA"]
 
 # Restart via `bin/rails restart`
 plugin :tmp_restart
