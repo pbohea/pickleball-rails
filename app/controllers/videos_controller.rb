@@ -44,7 +44,7 @@ class VideosController < ApplicationController
 
   def status
     @analysis = @video.analyses.order(created_at: :desc).first
-    render turbo_frame: "batch", partial: "status", locals: { video: @video, analysis: @analysis }
+    render :status, locals: { video: @video, analysis: @analysis }
   end
 
   private
