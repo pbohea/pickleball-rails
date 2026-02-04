@@ -14,8 +14,8 @@ Rails.application.configure do
   # If you later add a CDN or S3 for assets, we can set config.asset_host.
   # config.asset_host = "https://assets.pickleball.co"
 
-  # Store uploaded files locally in production unless a cloud storage is configured.
-  config.active_storage.service = :local
+  # Store uploaded files based on env; default to local.
+  config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"] || "local").to_sym
 
   # SSL behind Lightsail/Load Balancer or Nginx
   config.assume_ssl = true

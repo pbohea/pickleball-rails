@@ -6,6 +6,12 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
+gcs:
+  service: GCS
+  project: <%= ENV["GCP_PROJECT"] %>
+  bucket: <%= ENV["GCS_BUCKET"] %>
+  # Uses Application Default Credentials in GCP (no keyfile needed).
+
 
 
 

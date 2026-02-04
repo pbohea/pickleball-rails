@@ -35,4 +35,5 @@ class Video < ApplicationRecord
 
   validates :source, presence: true
   validates :status, presence: true
+  validates :notes, presence: true, if: -> { original_video.attached? }
 end

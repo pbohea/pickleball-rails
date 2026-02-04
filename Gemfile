@@ -23,6 +23,8 @@ gem 'rqrcode_svg'
 
 gem "geocoder"
 gem "aws-sdk-s3", "~> 1.140"
+gem "google-cloud-storage", "~> 1.45"
+gem "googleauth", "~> 1.13"
 
 gem "image_processing", "~> 1.12"
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
