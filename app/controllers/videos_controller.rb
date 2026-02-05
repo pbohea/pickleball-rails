@@ -68,49 +68,36 @@ class VideosController < ApplicationController
 
   def maybe_finalize_analysis(analysis)
     cv = analysis.cv_results || {}
-    execution_name = cv["execution_name"]
     output_uri = cv["output_uri"]
-    return if execution_name.blank? || output_uri.blank?
+    return if output_uri.blank?
 
-    client = Gcp::CloudRunJobsClient.new(
-      project: ENV.fetch("GCP_PROJECT"),
-      region: ENV.fetch("GCP_REGION", "us-central1")
+    storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
+    raw = storage.download_text(output_uri)
+    payload = JSON.parse(raw)
+
+    summary = payload["feedback"]
+    if summary.blank? && payload["feedback_error"].present?
+      summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
+    end
+
+    analysis.update!(
+      status: :complete,
+      completed_at: Time.current,
+      cv_results: payload,
+      summary: summary
     )
 
-    status = client.execution_status(execution_name)
+    conversation = @video.conversation || @video.build_conversation(user: @video.user, analysis: analysis)
+    conversation.analysis = analysis
+    conversation.save!
+    conversation.messages.create!(role: :assistant, content: summary, metadata: {}) if summary.present?
 
-    case status
-    when :succeeded
-      storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
-      raw = storage.download_text(output_uri)
-      payload = JSON.parse(raw)
-
-      summary = payload["feedback"]
-      if summary.blank? && payload["feedback_error"].present?
-        summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
-      end
-
-      analysis.update!(
-        status: :complete,
-        completed_at: Time.current,
-        cv_results: payload,
-        summary: summary
-      )
-
-      conversation = @video.conversation || @video.build_conversation(user: @video.user, analysis: analysis)
-      conversation.analysis = analysis
-      conversation.save!
-      conversation.messages.create!(role: :assistant, content: summary, metadata: {}) if summary.present?
-
-      @video.update!(status: :analyzed, processed_at: Time.current)
-      PushNotifications::ApnsSender.new.send_analysis_complete(user: @video.user, video: @video)
-    when :failed
-      analysis.update!(status: :failed)
-      @video.update!(status: :failed)
-    else
-      # still running or unknown; leave as-is
-    end
+    @video.update!(status: :analyzed, processed_at: Time.current)
+    PushNotifications::ApnsSender.new.send_analysis_complete(user: @video.user, video: @video)
   rescue StandardError => e
+    # If output isn't ready yet, just keep polling.
+    msg = e.message.to_s
+    return if msg.include?("object not found") || msg.include?("Not Found")
     Rails.logger.error("Status poll failed for analysis #{analysis.id}: #{e.class} #{e.message}")
   end
 end
