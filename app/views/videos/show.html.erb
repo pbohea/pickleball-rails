@@ -39,6 +39,12 @@
     <% if @analysis&.summary.present? %>
       <div class="page-card">
         <h4>Coach feedback</h4>
+        <% if @analysis.started_at.present? && @analysis.completed_at.present? %>
+          <% duration_seconds = (@analysis.completed_at - @analysis.started_at).to_i %>
+          <% minutes = duration_seconds / 60 %>
+          <% seconds = duration_seconds % 60 %>
+          <p class="text-muted mb-2">Processed in <%= pluralize(minutes, "minute") %> and <%= pluralize(seconds, "second") %>.</p>
+        <% end %>
         <p><%= simple_format(@analysis.summary) %></p>
       </div>
     <% end %>
