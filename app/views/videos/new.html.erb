@@ -21,7 +21,7 @@
         <div class="mb-4">
           <%= f.label :notes, "Describe what you're wearing", class: "form-label" %>
           <%= f.text_area :notes, rows: 2, class: "form-control", data: { "bridge--video-upload-target": "notes", "required-fields-target": "notes" }, placeholder: "Example: pink shirt and black shorts", required: true %>
-          <div class="form-text">We use this to identify you in the video.</div>
+          <div class="form-text">We use this to distinguish you from other players.</div>
         </div>
 
         <% if hotwire_native_app? %>
