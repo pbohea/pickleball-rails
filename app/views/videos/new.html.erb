@@ -12,7 +12,7 @@
       data-controller="bridge--video-upload"
       data-bridge--video-upload-upload-url-value="<%= native_upload_videos_url %>"
       data-bridge--video-upload-csrf-token-value="<%= form_authenticity_token %>">
-      <%= form_with model: @video, url: videos_path, method: :post do |f| %>
+      <%= form_with model: @video, url: videos_path, method: :post, data: { controller: "required-fields" } do |f| %>
         <div class="mb-3">
           <%= f.label :title, "Title (optional)", class: "form-label" %>
           <%= f.text_field :title, class: "form-control", placeholder: "Serve practice - May 3" %>
@@ -20,28 +20,27 @@
 
         <div class="mb-4">
           <%= f.label :notes, "Describe what you're wearing", class: "form-label" %>
-          <%= f.text_area :notes, rows: 2, class: "form-control", data: { "bridge--video-upload-target": "notes" }, placeholder: "Example: pink shirt and black shorts" %>
+          <%= f.text_area :notes, rows: 2, class: "form-control", data: { "bridge--video-upload-target": "notes", "required-fields-target": "notes" }, placeholder: "Example: pink shirt and black shorts", required: true %>
           <div class="form-text">We use this to identify you in the video.</div>
         </div>
 
-        <div class="mb-4">
-          <button type="button" class="btn btn-primary" data-action="click->bridge--video-upload#capture">
-            Record or choose video
-          </button>
-          <% unless hotwire_native_app? %>
-            <p class="text-muted mt-2">On desktop, you can also upload a file directly.</p>
-          <% end %>
-        </div>
+        <% if hotwire_native_app? %>
+          <div class="mb-4">
+            <button type="button" class="btn btn-primary" data-action="click->bridge--video-upload#capture">
+              Record or choose video
+            </button>
+          </div>
+        <% end %>
 
         <% unless hotwire_native_app? %>
           <div class="mb-4">
             <%= f.label :original_video, "Video file", class: "form-label" %>
-            <%= f.file_field :original_video, class: "form-control", accept: "video/*", direct_upload: true %>
+            <%= f.file_field :original_video, class: "form-control", accept: "video/*", direct_upload: true, data: { "required-fields-target": "file" }, required: true %>
           </div>
         <% end %>
 
         <div class="d-flex flex-wrap gap-2">
-          <%= f.submit "Upload", class: "btn btn-primary" %>
+          <%= f.submit "Upload", class: "btn btn-primary", data: { "required-fields-target": "submit" }, disabled: true %>
           <%= link_to "Back", root_path, class: "btn btn-outline-secondary" %>
         </div>
       <% end %>
