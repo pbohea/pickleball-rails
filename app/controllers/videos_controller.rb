@@ -19,7 +19,7 @@ class VideosController < ApplicationController
 
     if @video.save
       Rails.logger.info("Video create success id=#{@video.id} attached=#{@video.original_video.attached?}")
-      VideoAnalysisJob.perform_later(@video.id)
+      VideoAnalysisJob.perform_now(@video.id)
       redirect_to @video, notice: "Upload received. We are analyzing your video now."
     else
       Rails.logger.warn("Video create failed errors=#{@video.errors.full_messages.join(", ")}")
@@ -33,7 +33,7 @@ class VideosController < ApplicationController
 
     if @video.save
       Rails.logger.info("Video native upload success id=#{@video.id} attached=#{@video.original_video.attached?}")
-      VideoAnalysisJob.perform_later(@video.id)
+      VideoAnalysisJob.perform_now(@video.id)
       render json: { video_id: @video.id, redirect_url: video_url(@video) }
     else
       Rails.logger.warn("Video native upload failed errors=#{@video.errors.full_messages.join(", ")}")
@@ -48,6 +48,7 @@ class VideosController < ApplicationController
 
   def status
     @analysis = @video.analyses.order(created_at: :desc).first
+    maybe_finalize_analysis(@analysis) if @analysis&.running?
     render :status, locals: { video: @video, analysis: @analysis }
   end
 
@@ -63,5 +64,53 @@ class VideosController < ApplicationController
 
   def video_params
     params.fetch(:video, {}).permit(:title, :notes, :source, :original_video)
+  end
+
+  def maybe_finalize_analysis(analysis)
+    cv = analysis.cv_results || {}
+    execution_name = cv["execution_name"]
+    output_uri = cv["output_uri"]
+    return if execution_name.blank? || output_uri.blank?
+
+    client = Gcp::CloudRunJobsClient.new(
+      project: ENV.fetch("GCP_PROJECT"),
+      region: ENV.fetch("GCP_REGION", "us-central1")
+    )
+
+    status = client.execution_status(execution_name)
+
+    case status
+    when :succeeded
+      storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
+      raw = storage.download_text(output_uri)
+      payload = JSON.parse(raw)
+
+      summary = payload["feedback"]
+      if summary.blank? && payload["feedback_error"].present?
+        summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
+      end
+
+      analysis.update!(
+        status: :complete,
+        completed_at: Time.current,
+        cv_results: payload,
+        summary: summary
+      )
+
+      conversation = @video.conversation || @video.build_conversation(user: @video.user, analysis: analysis)
+      conversation.analysis = analysis
+      conversation.save!
+      conversation.messages.create!(role: :assistant, content: summary, metadata: {}) if summary.present?
+
+      @video.update!(status: :analyzed, processed_at: Time.current)
+      PushNotifications::ApnsSender.new.send_analysis_complete(user: @video.user, video: @video)
+    when :failed
+      analysis.update!(status: :failed)
+      @video.update!(status: :failed)
+    else
+      # still running or unknown; leave as-is
+    end
+  rescue StandardError => e
+    Rails.logger.error("Status poll failed for analysis #{analysis.id}: #{e.class} #{e.message}")
   end
 end
