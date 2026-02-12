@@ -1,0 +1,77 @@
+Table users {
+  id bigint [pk]
+  email varchar
+  encrypted_password varchar
+  created_at timestamp
+}
+
+Table videos {
+  id bigint [pk]
+  user_id bigint [ref: > users.id]
+  title varchar
+  notes text
+  source int
+  status int
+  uploaded_at timestamp
+  processed_at timestamp
+  created_at timestamp
+}
+
+Table analyses {
+  id bigint [pk]
+  video_id bigint [ref: > videos.id]
+  status int
+  started_at timestamp
+  completed_at timestamp
+  model_version varchar
+  cv_results jsonb
+  summary text
+  created_at timestamp
+}
+
+Table analysis_events {
+  id bigint [pk]
+  analysis_id bigint [ref: > analyses.id]
+  timestamp_ms bigint
+  event_type varchar
+  payload jsonb
+  created_at timestamp
+}
+
+Table conversations {
+  id bigint [pk]
+  user_id bigint [ref: > users.id]
+  video_id bigint [ref: > videos.id]
+  analysis_id bigint [ref: > analyses.id]
+  created_at timestamp
+}
+
+Table messages {
+  id bigint [pk]
+  conversation_id bigint [ref: > conversations.id]
+  role int
+  content text
+  metadata jsonb
+  created_at timestamp
+}
+
+Table active_storage_blobs {
+  id bigint [pk]
+  key varchar
+  filename varchar
+  content_type varchar
+  byte_size bigint
+  checksum varchar
+  created_at timestamp
+}
+
+Table active_storage_attachments {
+  id bigint [pk]
+  name varchar
+  record_type varchar
+  record_id bigint
+  blob_id bigint [ref: > active_storage_blobs.id]
+  created_at timestamp
+}
+
+// Polymorphic link: active_storage_attachments.record_type + record_id -> videos.id

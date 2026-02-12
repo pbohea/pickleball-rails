@@ -1,0 +1,68 @@
+```mermaid
+erDiagram
+  USERS ||--o{ VIDEOS : ""
+  VIDEOS ||--o{ ANALYSES : ""
+  ANALYSES ||--o{ ANALYSIS_EVENTS : ""
+  USERS ||--o{ CONVERSATIONS : ""
+  VIDEOS ||--o{ CONVERSATIONS : ""
+  ANALYSES ||--o{ CONVERSATIONS : ""
+  CONVERSATIONS ||--o{ MESSAGES : ""
+
+  USERS {
+    bigint id PK
+    string email
+    string encrypted_password
+    datetime created_at
+  }
+
+  VIDEOS {
+    bigint id PK
+    bigint user_id FK
+    string title
+    text notes
+    integer source
+    integer status
+    datetime uploaded_at
+    datetime processed_at
+    datetime created_at
+  }
+
+  ANALYSES {
+    bigint id PK
+    bigint video_id FK
+    integer status
+    datetime started_at
+    datetime completed_at
+    string model_version
+    jsonb cv_results
+    text summary
+    datetime created_at
+  }
+
+  ANALYSIS_EVENTS {
+    bigint id PK
+    bigint analysis_id FK
+    bigint timestamp_ms
+    string event_type
+    jsonb payload
+    datetime created_at
+  }
+
+  CONVERSATIONS {
+    bigint id PK
+    bigint user_id FK
+    bigint video_id FK
+    bigint analysis_id FK
+    datetime created_at
+  }
+
+  MESSAGES {
+    bigint id PK
+    bigint conversation_id FK
+    integer role
+    text content
+    jsonb metadata
+    datetime created_at
+  }
+
+```
