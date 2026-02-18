@@ -35,36 +35,63 @@ class VideoAnalysisJob < ApplicationJob
 
     analysis.analysis_events.create!(
       event_type: "analysis_started",
-      payload: { message: "Cloud Run analysis started" },
+      payload: { message: "Analysis request dispatched" },
       timestamp_ms: (Time.current.to_f * 1000).to_i
     )
 
     input_uri = ensure_gcs_input(video)
     output_uri = build_output_uri(video, analysis)
 
-    client = Gcp::CloudRunJobsClient.new(
-      project: ENV.fetch("GCP_PROJECT"),
-      region: ENV.fetch("GCP_REGION", "us-central1")
-    )
+    if ENV["MODEL_RUNNER_URL"].present?
+      client = ModelRunner::HttpClient.new(
+        url: ENV.fetch("MODEL_RUNNER_URL"),
+        token: ENV["MODEL_RUNNER_TOKEN"]
+      )
 
-    args = [
-      "--video=#{input_uri}",
-      "--desc=#{desc}",
-      "--start=00:00:00",
-      "--output=#{output_uri}"
-    ]
+      response = client.enqueue_analysis(
+        video_uri: input_uri,
+        desc: desc,
+        start: "00:00:00",
+        output_uri: output_uri
+      )
 
-    execution_name = client.run_job(ENV.fetch("PICKLEBALL_JOB_NAME"), args: args)
+      analysis.update!(
+        cv_results: {
+          "runner" => "http",
+          "request_id" => response[:request_id],
+          "runner_response" => response[:raw],
+          "output_uri" => output_uri,
+          "input_uri" => input_uri,
+          "desc" => desc,
+          "poll_attempts" => 0
+        }
+      )
+    else
+      client = Gcp::CloudRunJobsClient.new(
+        project: ENV.fetch("GCP_PROJECT"),
+        region: ENV.fetch("GCP_REGION", "us-central1")
+      )
 
-    analysis.update!(
-      cv_results: {
-        "execution_name" => execution_name,
-        "output_uri" => output_uri,
-        "input_uri" => input_uri,
-        "desc" => desc,
-        "poll_attempts" => 0
-      }
-    )
+      args = [
+        "--video=#{input_uri}",
+        "--desc=#{desc}",
+        "--start=00:00:00",
+        "--output=#{output_uri}"
+      ]
+
+      execution_name = client.run_job(ENV.fetch("PICKLEBALL_JOB_NAME"), args: args)
+
+      analysis.update!(
+        cv_results: {
+          "runner" => "cloud_run_job",
+          "execution_name" => execution_name,
+          "output_uri" => output_uri,
+          "input_uri" => input_uri,
+          "desc" => desc,
+          "poll_attempts" => 0
+        }
+      )
+    end
 
     VideoAnalysisPollJob.set(wait: 30.seconds).perform_later(analysis.id)
   rescue StandardError => e
