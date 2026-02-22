@@ -41,6 +41,14 @@ class VideoAnalysisJob < ApplicationJob
 
     input_uri = ensure_gcs_input(video)
     output_uri = build_output_uri(video, analysis)
+    base_cv_results = {
+      "output_uri" => output_uri,
+      "input_uri" => input_uri,
+      "desc" => desc,
+      "poll_attempts" => 0
+    }
+    # Persist output location before dispatch so status polling can recover even if process exits mid-request.
+    analysis.update!(cv_results: (analysis.cv_results || {}).merge(base_cv_results))
 
     if ENV["MODEL_RUNNER_URL"].present?
       client = ModelRunner::HttpClient.new(
@@ -63,15 +71,11 @@ class VideoAnalysisJob < ApplicationJob
       )
 
       analysis.update!(
-        cv_results: {
+        cv_results: base_cv_results.merge(
           "runner" => "http",
           "request_id" => response[:request_id],
-          "runner_response" => response[:raw],
-          "output_uri" => output_uri,
-          "input_uri" => input_uri,
-          "desc" => desc,
-          "poll_attempts" => 0
-        }
+          "runner_response" => response[:raw]
+        )
       )
     else
       client = Gcp::CloudRunJobsClient.new(
@@ -89,14 +93,10 @@ class VideoAnalysisJob < ApplicationJob
       execution_name = client.run_job(ENV.fetch("PICKLEBALL_JOB_NAME"), args: args)
 
       analysis.update!(
-        cv_results: {
+        cv_results: base_cv_results.merge(
           "runner" => "cloud_run_job",
-          "execution_name" => execution_name,
-          "output_uri" => output_uri,
-          "input_uri" => input_uri,
-          "desc" => desc,
-          "poll_attempts" => 0
-        }
+          "execution_name" => execution_name
+        )
       )
     end
 

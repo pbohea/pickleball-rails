@@ -69,7 +69,10 @@ class VideosController < ApplicationController
   def maybe_finalize_analysis(analysis)
     cv = analysis.cv_results || {}
     output_uri = cv["output_uri"]
-    return if output_uri.blank?
+    if output_uri.blank?
+      maybe_fail_stale_analysis!(analysis)
+      return
+    end
 
     storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
     raw = storage.download_text(output_uri)
@@ -97,7 +100,21 @@ class VideosController < ApplicationController
   rescue StandardError => e
     # If output isn't ready yet, just keep polling.
     msg = e.message.to_s
-    return if msg.include?("object not found") || msg.include?("Not Found")
+    if msg.include?("object not found") || msg.include?("Not Found")
+      maybe_fail_stale_analysis!(analysis)
+      return
+    end
     Rails.logger.error("Status poll failed for analysis #{analysis.id}: #{e.class} #{e.message}")
+  end
+
+  def maybe_fail_stale_analysis!(analysis)
+    timeout_minutes = ENV.fetch("MODEL_RUNNER_STALE_MINUTES", "30").to_i
+    return if timeout_minutes <= 0
+    return if analysis.started_at.blank?
+    return if analysis.started_at > timeout_minutes.minutes.ago
+
+    analysis.update!(status: :failed)
+    @video.update!(status: :failed)
+    Rails.logger.error("Analysis marked failed due to staleness analysis_id=#{analysis.id} timeout_minutes=#{timeout_minutes}")
   end
 end
