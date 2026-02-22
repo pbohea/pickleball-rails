@@ -41,10 +41,12 @@ class VideoAnalysisJob < ApplicationJob
 
     input_uri = ensure_gcs_input(video)
     output_uri = build_output_uri(video, analysis)
+    clip_start = ENV.fetch("MODEL_RUNNER_START", "00:00:00")
     base_cv_results = {
       "output_uri" => output_uri,
       "input_uri" => input_uri,
       "desc" => desc,
+      "start" => clip_start,
       "poll_attempts" => 0
     }
     # Persist output location before dispatch so status polling can recover even if process exits mid-request.
@@ -59,7 +61,7 @@ class VideoAnalysisJob < ApplicationJob
       response = client.enqueue_analysis(
         video_uri: input_uri,
         desc: desc,
-        start: "00:00:00",
+        start: clip_start,
         output_uri: output_uri,
         duration: ENV["MODEL_RUNNER_DURATION"],
         fps: ENV["MODEL_RUNNER_FPS"],
@@ -86,7 +88,7 @@ class VideoAnalysisJob < ApplicationJob
       args = [
         "--video=#{input_uri}",
         "--desc=#{desc}",
-        "--start=00:00:00",
+        "--start=#{clip_start}",
         "--output=#{output_uri}"
       ]
 
