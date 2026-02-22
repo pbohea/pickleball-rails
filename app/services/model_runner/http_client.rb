@@ -32,7 +32,21 @@ module ModelRunner
       }
     end
 
+    def job_status(request_id)
+      request_json(:get, jobs_uri(request_id))
+    end
+
     private
+
+    def jobs_uri(request_id)
+      uri = @uri.dup
+      base_path = uri.path.to_s
+      base_path = base_path.sub(%r{/analyze/?\z}, "")
+      base_path = "/" if base_path.blank?
+      base_path = base_path.sub(%r{/\z}, "")
+      uri.path = "#{base_path}/jobs/#{request_id}"
+      uri
+    end
 
     def request_json(method, uri, body = nil)
       http = Net::HTTP.new(uri.host, uri.port)

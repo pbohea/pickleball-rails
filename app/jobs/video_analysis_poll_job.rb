@@ -12,6 +12,7 @@ class VideoAnalysisPollJob < ApplicationJob
     cv = analysis.cv_results || {}
 
     execution_name = cv["execution_name"]
+    request_id = cv["request_id"]
     output_uri = cv["output_uri"]
     attempts = cv["poll_attempts"].to_i
 
@@ -23,8 +24,27 @@ class VideoAnalysisPollJob < ApplicationJob
 
     payload = fetch_output_payload(output_uri)
     if payload
-      finalize_analysis!(analysis, video, payload)
+      finalize_analysis!(analysis, video, payload, cv)
       return
+    end
+
+    if request_id.present? && ENV["MODEL_RUNNER_URL"].present?
+      client = ModelRunner::HttpClient.new(
+        url: ENV.fetch("MODEL_RUNNER_URL"),
+        token: ENV["MODEL_RUNNER_TOKEN"]
+      )
+      runner_job = client.job_status(request_id)
+      if runner_job["status"] == "failed"
+        message = runner_failure_message(runner_job)
+        analysis.update!(
+          status: :failed,
+          completed_at: Time.current,
+          summary: message,
+          cv_results: cv.merge("runner_job" => runner_job)
+        )
+        video.update!(status: :failed)
+        return
+      end
     end
 
     if execution_name.present?
@@ -68,17 +88,18 @@ class VideoAnalysisPollJob < ApplicationJob
     raise
   end
 
-  def finalize_analysis!(analysis, video, payload)
+  def finalize_analysis!(analysis, video, payload, cv)
     payload = ModelRunner::PayloadAdapter.normalize(payload)
-    summary = ModelRunner::PayloadAdapter.summary_for(payload)
-    if summary.blank? && payload["feedback_error"].present?
-      summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
+    merged_payload = cv.merge(payload)
+    summary = ModelRunner::PayloadAdapter.summary_for(merged_payload)
+    if summary.blank? && merged_payload["feedback_error"].present?
+      summary = "Analysis complete, but feedback was unavailable: #{merged_payload["feedback_error"]}"
     end
 
     analysis.update!(
       status: :complete,
       completed_at: Time.current,
-      cv_results: payload,
+      cv_results: merged_payload,
       summary: summary
     )
 
@@ -91,5 +112,14 @@ class VideoAnalysisPollJob < ApplicationJob
 
     video.update!(status: :analyzed, processed_at: Time.current)
     PushNotifications::ApnsSender.new.send_analysis_complete(user: video.user, video: video)
+  end
+
+  def runner_failure_message(runner_job)
+    stderr = runner_job["stderr_tail"].to_s
+    if stderr.include?("Could not match")
+      "We couldn't find you based on that description. Please try a different clothing description."
+    else
+      "Analysis failed in the model runner. Please try uploading again."
+    end
   end
 end

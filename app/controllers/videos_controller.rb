@@ -70,6 +70,7 @@ class VideosController < ApplicationController
     cv = analysis.cv_results || {}
     output_uri = cv["output_uri"]
     if output_uri.blank?
+      maybe_fail_from_runner!(analysis, cv)
       maybe_fail_stale_analysis!(analysis)
       return
     end
@@ -77,16 +78,17 @@ class VideosController < ApplicationController
     storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
     raw = storage.download_text(output_uri)
     payload = ModelRunner::PayloadAdapter.normalize(JSON.parse(raw))
+    merged_payload = cv.merge(payload)
 
-    summary = ModelRunner::PayloadAdapter.summary_for(payload)
-    if summary.blank? && payload["feedback_error"].present?
-      summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
+    summary = ModelRunner::PayloadAdapter.summary_for(merged_payload)
+    if summary.blank? && merged_payload["feedback_error"].present?
+      summary = "Analysis complete, but feedback was unavailable: #{merged_payload["feedback_error"]}"
     end
 
     analysis.update!(
       status: :complete,
       completed_at: Time.current,
-      cv_results: payload,
+      cv_results: merged_payload,
       summary: summary
     )
 
@@ -101,10 +103,43 @@ class VideosController < ApplicationController
     # If output isn't ready yet, just keep polling.
     msg = e.message.to_s
     if msg.include?("object not found") || msg.include?("Not Found")
+      maybe_fail_from_runner!(analysis, cv)
       maybe_fail_stale_analysis!(analysis)
       return
     end
     Rails.logger.error("Status poll failed for analysis #{analysis.id}: #{e.class} #{e.message}")
+  end
+
+  def maybe_fail_from_runner!(analysis, cv)
+    return unless cv["request_id"].present?
+    return if ENV["MODEL_RUNNER_URL"].blank?
+
+    client = ModelRunner::HttpClient.new(
+      url: ENV.fetch("MODEL_RUNNER_URL"),
+      token: ENV["MODEL_RUNNER_TOKEN"]
+    )
+    job = client.job_status(cv["request_id"])
+    return unless job["status"] == "failed"
+
+    message = runner_failure_message(job)
+    analysis.update!(
+      status: :failed,
+      completed_at: Time.current,
+      summary: message,
+      cv_results: cv.merge("runner_job" => job)
+    )
+    @video.update!(status: :failed)
+  rescue StandardError => e
+    Rails.logger.error("Runner status check failed for analysis #{analysis.id}: #{e.class} #{e.message}")
+  end
+
+  def runner_failure_message(job)
+    stderr = job["stderr_tail"].to_s
+    if stderr.include?("Could not match")
+      "We couldn't find you based on that description. Please try a different clothing description."
+    else
+      "Analysis failed in the model runner. Please try uploading again."
+    end
   end
 
   def maybe_fail_stale_analysis!(analysis)

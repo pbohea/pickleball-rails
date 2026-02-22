@@ -26,6 +26,9 @@
   <% else %>
     <div class="status-card__title text-danger">Analysis failed</div>
     <%= render "status_bar", video: video, analysis: analysis %>
+    <% if analysis&.summary.present? %>
+      <p class="text-muted mb-2"><%= analysis.summary %></p>
+    <% end %>
     <p class="text-muted mb-0">Please try uploading again.</p>
   <% end %>
 </div>
