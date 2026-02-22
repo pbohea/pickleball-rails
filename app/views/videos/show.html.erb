@@ -75,6 +75,91 @@
       </div>
     <% end %>
 
+    <% if @analysis.present? %>
+      <% payload = @analysis.cv_results.is_a?(Hash) ? @analysis.cv_results : {} %>
+      <% input = payload["input"].is_a?(Hash) ? payload["input"] : {} %>
+      <% results = payload["results"].is_a?(Hash) ? payload["results"] : {} %>
+      <% shot_summary = results["shot_summary"].is_a?(Hash) ? results["shot_summary"] : {} %>
+      <% form_analysis = results["form_analysis"].is_a?(Hash) ? results["form_analysis"] : {} %>
+      <% coaching_summary = results["coaching_summary"].is_a?(Hash) ? results["coaching_summary"] : {} %>
+      <% overall = coaching_summary["overall"].is_a?(Hash) ? coaching_summary["overall"] : {} %>
+      <% cv_meta = payload.except("input", "results") %>
+
+      <% fmt_val = ->(v) { v.present? ? v : "n/a" } %>
+      <% fmt_num = lambda do |v, digits = 2|
+           begin
+             v.nil? ? "n/a" : format("%.#{digits}f", Float(v))
+           rescue
+             "n/a"
+           end
+         end %>
+
+      <div class="page-card">
+        <h5>Troubleshooting: Model Payload Debug</h5>
+        <p class="text-muted mb-3">Everything below is what Rails has at render time for this analysis.</p>
+
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <tbody>
+              <tr><th scope="row">Analysis ID</th><td><%= @analysis.id %></td></tr>
+              <tr><th scope="row">Analysis Status</th><td><%= @analysis.status %></td></tr>
+              <tr><th scope="row">Model Version</th><td><%= fmt_val.call(@analysis.model_version) %></td></tr>
+              <tr><th scope="row">Started At</th><td><%= fmt_val.call(@analysis.started_at) %></td></tr>
+              <tr><th scope="row">Completed At</th><td><%= fmt_val.call(@analysis.completed_at) %></td></tr>
+              <tr><th scope="row">Runner</th><td><%= fmt_val.call(payload["runner"]) %></td></tr>
+              <tr><th scope="row">Request ID</th><td><%= fmt_val.call(payload["request_id"]) %></td></tr>
+              <tr><th scope="row">Execution Name</th><td><%= fmt_val.call(payload["execution_name"]) %></td></tr>
+              <tr><th scope="row">Input URI</th><td><%= fmt_val.call(payload["input_uri"]) %></td></tr>
+              <tr><th scope="row">Output URI</th><td><%= fmt_val.call(payload["output_uri"]) %></td></tr>
+              <tr><th scope="row">Desc Used</th><td><%= fmt_val.call(payload["desc"]) %></td></tr>
+              <tr><th scope="row">Poll Attempts</th><td><%= fmt_val.call(payload["poll_attempts"]) %></td></tr>
+
+              <tr><th scope="row">Input.Start</th><td><%= fmt_val.call(input["start"]) %></td></tr>
+              <tr><th scope="row">Input.Duration</th><td><%= fmt_val.call(input["duration"]) %></td></tr>
+              <tr><th scope="row">Input.FPS</th><td><%= fmt_val.call(input["fps"]) %></td></tr>
+              <tr><th scope="row">Input.Width</th><td><%= fmt_val.call(input["width"]) %></td></tr>
+              <tr><th scope="row">Input.Select T Sec</th><td><%= fmt_val.call(input["select_t_sec"]) %></td></tr>
+              <tr><th scope="row">Input.Ball Model</th><td><%= fmt_val.call(input["ball_model"]) %></td></tr>
+              <tr><th scope="row">Input.Pose Model</th><td><%= fmt_val.call(input["pose_model"]) %></td></tr>
+              <tr><th scope="row">Input.Baseline</th><td><%= fmt_val.call(input["baseline"]) %></td></tr>
+
+              <tr><th scope="row">ShotSummary.Total Frames</th><td><%= fmt_val.call(shot_summary["total_frames"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.FPS</th><td><%= fmt_num.call(shot_summary["fps"], 2) %></td></tr>
+              <tr><th scope="row">ShotSummary.Duration (s)</th><td><%= fmt_num.call(shot_summary["duration_seconds"], 2) %></td></tr>
+              <tr><th scope="row">ShotSummary.Resolution</th><td><%= fmt_val.call(shot_summary["resolution"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Net Y</th><td><%= fmt_val.call(shot_summary["net_y"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Total Hits</th><td><%= fmt_val.call(shot_summary["total_hits"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Court Player IDs</th><td><%= fmt_val.call(shot_summary["court_player_ids"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Focus Player ID</th><td><%= fmt_val.call(shot_summary["focus_player_id"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Focus Desc</th><td><%= fmt_val.call(shot_summary["focus_desc"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Baseline Used</th><td><%= fmt_val.call(shot_summary["baseline_used"]) %></td></tr>
+              <tr><th scope="row">ShotSummary.Baseline N Hits</th><td><%= fmt_val.call(shot_summary["baseline_n_hits"]) %></td></tr>
+
+              <tr><th scope="row">FormAnalysis.Per Shot Count</th><td><%= fmt_val.call(Array(form_analysis["per_shot_form"]).size) %></td></tr>
+              <tr><th scope="row">Coaching.Mean Contact</th><td><%= fmt_num.call(overall["mean_contact"], 2) %></td></tr>
+              <tr><th scope="row">Coaching.Mean Prep</th><td><%= fmt_num.call(overall["mean_prep"], 2) %></td></tr>
+              <tr><th scope="row">Coaching.Mean Recovery</th><td><%= fmt_num.call(overall["mean_recovery"], 2) %></td></tr>
+              <tr><th scope="row">Coaching.N Scored</th><td><%= fmt_val.call(overall["n_scored"]) %></td></tr>
+              <tr><th scope="row">Recommendations Count</th><td><%= fmt_val.call(Array(coaching_summary["recommendations"]).compact.size) %></td></tr>
+              <tr><th scope="row">Feedback Error</th><td><%= fmt_val.call(payload["feedback_error"]) %></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <details class="mt-3">
+          <summary><strong>Raw cv_results JSON</strong></summary>
+          <pre class="mt-2 mb-0" style="max-height: 420px; overflow:auto;"><%= JSON.pretty_generate(payload) rescue payload.to_json %></pre>
+        </details>
+
+        <% if cv_meta.present? %>
+          <details class="mt-3">
+            <summary><strong>Raw runner metadata (top-level)</strong></summary>
+            <pre class="mt-2 mb-0" style="max-height: 260px; overflow:auto;"><%= JSON.pretty_generate(cv_meta) rescue cv_meta.to_json %></pre>
+          </details>
+        <% end %>
+      </div>
+    <% end %>
+
     <% if @conversation&.messages&.any? %>
       <div class="page-card">
         <h5>Conversation</h5>
