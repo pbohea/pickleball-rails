@@ -73,9 +73,9 @@ class VideosController < ApplicationController
 
     storage = Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
     raw = storage.download_text(output_uri)
-    payload = JSON.parse(raw)
+    payload = ModelRunner::PayloadAdapter.normalize(JSON.parse(raw))
 
-    summary = payload["feedback"]
+    summary = ModelRunner::PayloadAdapter.summary_for(payload)
     if summary.blank? && payload["feedback_error"].present?
       summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
     end

@@ -69,7 +69,8 @@ class VideoAnalysisPollJob < ApplicationJob
   end
 
   def finalize_analysis!(analysis, video, payload)
-    summary = payload["feedback"]
+    payload = ModelRunner::PayloadAdapter.normalize(payload)
+    summary = ModelRunner::PayloadAdapter.summary_for(payload)
     if summary.blank? && payload["feedback_error"].present?
       summary = "Analysis complete, but feedback was unavailable: #{payload["feedback_error"]}"
     end

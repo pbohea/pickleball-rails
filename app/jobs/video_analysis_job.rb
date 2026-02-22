@@ -52,7 +52,14 @@ class VideoAnalysisJob < ApplicationJob
         video_uri: input_uri,
         desc: desc,
         start: "00:00:00",
-        output_uri: output_uri
+        output_uri: output_uri,
+        duration: ENV["MODEL_RUNNER_DURATION"],
+        fps: ENV["MODEL_RUNNER_FPS"],
+        width: ENV["MODEL_RUNNER_WIDTH"],
+        select_t_sec: ENV["MODEL_RUNNER_SELECT_T_SEC"],
+        baseline: ENV["MODEL_RUNNER_BASELINE"],
+        ball_model: ENV["MODEL_RUNNER_BALL_MODEL"],
+        pose_model: ENV["MODEL_RUNNER_POSE_MODEL"]
       )
 
       analysis.update!(
