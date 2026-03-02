@@ -36,16 +36,109 @@
       </div>
     <% end %>
 
+    <% payload = @analysis&.cv_results.is_a?(Hash) ? @analysis.cv_results : {} %>
+    <% results = payload["results"].is_a?(Hash) ? payload["results"] : {} %>
+    <% form_analysis = results["form_analysis"].is_a?(Hash) ? results["form_analysis"] : {} %>
+    <% llm_report = form_analysis["llm_report"].is_a?(Hash) ? form_analysis["llm_report"] : {} %>
+    <% llm_text = llm_report["text"].to_s %>
+    <% llm_lines = llm_text.lines.map { |ln| ln.strip }.reject(&:blank?) %>
+    <% llm_sections = { priorities: [], drills: [], goals: [] } %>
+    <% llm_intro = [] %>
+    <% llm_mode = nil %>
+    <% llm_lines.each do |line| %>
+      <% case line.downcase %>
+      <% when /\Atop\s*\d*\s*priorities:/ %>
+        <% llm_mode = :priorities %>
+      <% when /\Adrills:/ %>
+        <% llm_mode = :drills %>
+      <% when /\Ameasurable goals/ %>
+        <% llm_mode = :goals %>
+      <% else %>
+        <% cleaned = line.sub(/\A[-*]\s*/, "").sub(/\A\d+[\.\)]\s*/, "") %>
+        <% if llm_mode && cleaned.present? %>
+          <% llm_sections[llm_mode] << cleaned %>
+        <% elsif cleaned.present? %>
+          <% llm_intro << cleaned %>
+        <% end %>
+      <% end %>
+    <% end %>
+
     <% if @analysis&.summary.present? %>
+      <% summary_lines = @analysis.summary.to_s.lines.map { |ln| ln.strip }.reject(&:blank?) %>
+      <% summary_bullets = summary_lines.select { |ln| ln.start_with?("-") }.map { |ln| ln.sub(/\A-\s*/, "") } %>
+      <% summary_paragraphs = summary_lines.reject { |ln| ln.start_with?("-") } %>
       <div class="page-card">
         <h4>Coach feedback</h4>
         <% if @analysis.started_at.present? && @analysis.completed_at.present? %>
           <% duration_seconds = (@analysis.completed_at - @analysis.started_at).to_i %>
           <% minutes = duration_seconds / 60 %>
           <% seconds = duration_seconds % 60 %>
-          <p class="text-muted mb-2">Processed in <%= pluralize(minutes, "minute") %> and <%= pluralize(seconds, "second") %>.</p>
+          <p class="text-muted mb-3">Processed in <%= pluralize(minutes, "minute") %> and <%= pluralize(seconds, "second") %>.</p>
         <% end %>
-        <p><%= simple_format(@analysis.summary) %></p>
+        <% summary_paragraphs.each do |line| %>
+          <p class="mb-2"><%= line %></p>
+        <% end %>
+        <% if summary_bullets.any? %>
+          <ul class="mb-0">
+            <% summary_bullets.each do |item| %>
+              <li><%= item %></li>
+            <% end %>
+          </ul>
+        <% end %>
+      </div>
+    <% end %>
+
+    <% if llm_sections.values.any?(&:any?) || llm_intro.any? %>
+      <div class="page-card page-card--soft">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h5 class="mb-0">AI coaching plan</h5>
+          <% if llm_report["source"].present? %>
+            <span class="badge text-bg-light border"><%= llm_report["source"] %></span>
+          <% end %>
+        </div>
+        <% if llm_intro.any? %>
+          <% llm_intro.each do |line| %>
+            <p class="mb-2"><%= line %></p>
+          <% end %>
+        <% end %>
+        <div class="row g-3 llm-grid">
+          <% if llm_sections[:priorities].any? %>
+            <div class="col-12 col-lg-4">
+              <div class="llm-panel">
+                <h6>Top priorities</h6>
+                <ul class="mb-0">
+                  <% llm_sections[:priorities].each do |item| %>
+                    <li><%= item %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+          <% if llm_sections[:drills].any? %>
+            <div class="col-12 col-lg-4">
+              <div class="llm-panel">
+                <h6>Drills</h6>
+                <ul class="mb-0">
+                  <% llm_sections[:drills].each do |item| %>
+                    <li><%= item %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+          <% if llm_sections[:goals].any? %>
+            <div class="col-12 col-lg-4">
+              <div class="llm-panel">
+                <h6>Next-session goals</h6>
+                <ul class="mb-0">
+                  <% llm_sections[:goals].each do |item| %>
+                    <li><%= item %></li>
+                  <% end %>
+                </ul>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
     <% end %>
 
@@ -76,14 +169,10 @@
     <% end %>
 
     <% if @analysis.present? %>
-      <% payload = @analysis.cv_results.is_a?(Hash) ? @analysis.cv_results : {} %>
       <% input = payload["input"].is_a?(Hash) ? payload["input"] : {} %>
-      <% results = payload["results"].is_a?(Hash) ? payload["results"] : {} %>
       <% shot_summary = results["shot_summary"].is_a?(Hash) ? results["shot_summary"] : {} %>
-      <% form_analysis = results["form_analysis"].is_a?(Hash) ? results["form_analysis"] : {} %>
       <% coaching_summary = results["coaching_summary"].is_a?(Hash) ? results["coaching_summary"] : {} %>
       <% overall = coaching_summary["overall"].is_a?(Hash) ? coaching_summary["overall"] : {} %>
-      <% cv_meta = payload.except("input", "results") %>
       <% best_worst = shot_summary["best_worst_clips"] %>
       <% best_worst = form_analysis["best_worst_clips"] if !best_worst.is_a?(Hash) %>
       <% best_clips = best_worst.is_a?(Hash) ? Array(best_worst["best"]).compact : [] %>
@@ -189,70 +278,6 @@
         </div>
       <% end %>
 
-      <div class="page-card">
-        <h5>Troubleshooting: Model Payload Debug</h5>
-        <p class="text-muted mb-3">Everything below is what Rails has at render time for this analysis.</p>
-
-        <div class="table-responsive">
-          <table class="table table-sm align-middle mb-0">
-            <tbody>
-              <tr><th scope="row">Analysis ID</th><td><%= @analysis.id %></td></tr>
-              <tr><th scope="row">Analysis Status</th><td><%= @analysis.status %></td></tr>
-              <tr><th scope="row">Model Version</th><td><%= fmt_val.call(@analysis.model_version) %></td></tr>
-              <tr><th scope="row">Started At</th><td><%= fmt_val.call(@analysis.started_at) %></td></tr>
-              <tr><th scope="row">Completed At</th><td><%= fmt_val.call(@analysis.completed_at) %></td></tr>
-              <tr><th scope="row">Runner</th><td><%= fmt_val.call(payload["runner"]) %></td></tr>
-              <tr><th scope="row">Request ID</th><td><%= fmt_val.call(payload["request_id"]) %></td></tr>
-              <tr><th scope="row">Execution Name</th><td><%= fmt_val.call(payload["execution_name"]) %></td></tr>
-              <tr><th scope="row">Input URI</th><td><%= fmt_val.call(payload["input_uri"]) %></td></tr>
-              <tr><th scope="row">Output URI</th><td><%= fmt_val.call(payload["output_uri"]) %></td></tr>
-              <tr><th scope="row">Desc Used</th><td><%= fmt_val.call(payload["desc"]) %></td></tr>
-              <tr><th scope="row">Poll Attempts</th><td><%= fmt_val.call(payload["poll_attempts"]) %></td></tr>
-
-              <tr><th scope="row">Input.Start</th><td><%= fmt_val.call(input["start"]) %></td></tr>
-              <tr><th scope="row">Input.Duration</th><td><%= fmt_val.call(input["duration"]) %></td></tr>
-              <tr><th scope="row">Input.FPS</th><td><%= fmt_val.call(input["fps"]) %></td></tr>
-              <tr><th scope="row">Input.Width</th><td><%= fmt_val.call(input["width"]) %></td></tr>
-              <tr><th scope="row">Input.Select T Sec</th><td><%= fmt_val.call(input["select_t_sec"]) %></td></tr>
-              <tr><th scope="row">Input.Ball Model</th><td><%= fmt_val.call(input["ball_model"]) %></td></tr>
-              <tr><th scope="row">Input.Pose Model</th><td><%= fmt_val.call(input["pose_model"]) %></td></tr>
-              <tr><th scope="row">Input.Baseline</th><td><%= fmt_val.call(input["baseline"]) %></td></tr>
-
-              <tr><th scope="row">ShotSummary.Total Frames</th><td><%= fmt_val.call(shot_summary["total_frames"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.FPS</th><td><%= fmt_num.call(shot_summary["fps"], 2) %></td></tr>
-              <tr><th scope="row">ShotSummary.Duration (s)</th><td><%= fmt_num.call(shot_summary["duration_seconds"], 2) %></td></tr>
-              <tr><th scope="row">ShotSummary.Resolution</th><td><%= fmt_val.call(shot_summary["resolution"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Net Y</th><td><%= fmt_val.call(shot_summary["net_y"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Total Hits</th><td><%= fmt_val.call(shot_summary["total_hits"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Court Player IDs</th><td><%= fmt_val.call(shot_summary["court_player_ids"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Focus Player ID</th><td><%= fmt_val.call(shot_summary["focus_player_id"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Focus Desc</th><td><%= fmt_val.call(shot_summary["focus_desc"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Baseline Used</th><td><%= fmt_val.call(shot_summary["baseline_used"]) %></td></tr>
-              <tr><th scope="row">ShotSummary.Baseline N Hits</th><td><%= fmt_val.call(shot_summary["baseline_n_hits"]) %></td></tr>
-
-              <tr><th scope="row">FormAnalysis.Per Shot Count</th><td><%= fmt_val.call(Array(form_analysis["per_shot_form"]).size) %></td></tr>
-              <tr><th scope="row">Coaching.Mean Contact</th><td><%= fmt_num.call(overall["mean_contact"], 2) %></td></tr>
-              <tr><th scope="row">Coaching.Mean Prep</th><td><%= fmt_num.call(overall["mean_prep"], 2) %></td></tr>
-              <tr><th scope="row">Coaching.Mean Recovery</th><td><%= fmt_num.call(overall["mean_recovery"], 2) %></td></tr>
-              <tr><th scope="row">Coaching.N Scored</th><td><%= fmt_val.call(overall["n_scored"]) %></td></tr>
-              <tr><th scope="row">Recommendations Count</th><td><%= fmt_val.call(Array(coaching_summary["recommendations"]).compact.size) %></td></tr>
-              <tr><th scope="row">Feedback Error</th><td><%= fmt_val.call(payload["feedback_error"]) %></td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <details class="mt-3">
-          <summary><strong>Raw cv_results JSON</strong></summary>
-          <pre class="mt-2 mb-0" style="max-height: 420px; overflow:auto;"><%= JSON.pretty_generate(payload) rescue payload.to_json %></pre>
-        </details>
-
-        <% if cv_meta.present? %>
-          <details class="mt-3">
-            <summary><strong>Raw runner metadata (top-level)</strong></summary>
-            <pre class="mt-2 mb-0" style="max-height: 260px; overflow:auto;"><%= JSON.pretty_generate(cv_meta) rescue cv_meta.to_json %></pre>
-          </details>
-        <% end %>
-      </div>
     <% end %>
 
     <% if @conversation&.messages&.any? %>

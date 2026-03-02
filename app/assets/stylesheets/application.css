@@ -250,6 +250,33 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 12px 24px rgba(13, 27, 30, 0.06);
 }
 
+.llm-grid .llm-panel {
+  height: 100%;
+  border: 1px solid rgba(13, 27, 30, 0.1);
+  border-radius: 16px;
+  padding: 1rem 1rem 0.75rem;
+  background: #fff;
+}
+
+.llm-panel h6 {
+  font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+  color: var(--ink-500);
+  margin-bottom: 0.65rem;
+}
+
+.llm-panel ul {
+  padding-left: 1rem;
+}
+
+.llm-panel li {
+  margin-bottom: 0.45rem;
+  color: var(--ink-700);
+}
+
 .btn-primary {
   background: var(--sea-500);
   border-color: var(--sea-500);
