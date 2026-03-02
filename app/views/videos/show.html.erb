@@ -84,15 +84,92 @@
       <% coaching_summary = results["coaching_summary"].is_a?(Hash) ? results["coaching_summary"] : {} %>
       <% overall = coaching_summary["overall"].is_a?(Hash) ? coaching_summary["overall"] : {} %>
       <% cv_meta = payload.except("input", "results") %>
+      <% best_worst = shot_summary["best_worst_clips"] %>
+      <% best_worst = form_analysis["best_worst_clips"] if !best_worst.is_a?(Hash) %>
+      <% best_clips = best_worst.is_a?(Hash) ? Array(best_worst["best"]).compact : [] %>
+      <% worst_clips = best_worst.is_a?(Hash) ? Array(best_worst["worst"]).compact : [] %>
 
       <% fmt_val = ->(v) { v.present? ? v : "n/a" } %>
       <% fmt_num = lambda do |v, digits = 2|
            begin
              v.nil? ? "n/a" : format("%.#{digits}f", Float(v))
            rescue
-             "n/a"
+           "n/a"
            end
          end %>
+      <% clip_url_for = lambda do |clip|
+           c = clip.is_a?(Hash) ? clip : {}
+           direct = c["url"] || c["public_url"] || c["video_url"]
+           if direct.present?
+             direct
+           else
+             p = c["path"].to_s
+             p.start_with?("http://", "https://") ? p : nil
+           end
+         end %>
+
+      <% if best_clips.any? || worst_clips.any? %>
+        <div class="page-card">
+          <h5>Best / Worst Clips</h5>
+          <p class="text-muted mb-3">Videos render when the payload contains a public URL. Local runner file paths are shown as metadata only.</p>
+          <div class="row g-4">
+            <div class="col-12 col-lg-6">
+              <h6 class="mb-3">Best Shots</h6>
+              <% if best_clips.any? %>
+                <% best_clips.each_with_index do |clip, idx| %>
+                  <% url = clip_url_for.call(clip) %>
+                  <div class="border rounded p-3 mb-3">
+                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %></p>
+                    <% if url.present? %>
+                      <video controls preload="metadata" class="w-100 rounded">
+                        <source src="<%= url %>">
+                      </video>
+                    <% else %>
+                      <p class="text-muted mb-1">No public video URL in payload.</p>
+                    <% end %>
+                    <p class="text-muted mb-0 small">
+                      frame=<%= fmt_val.call(clip["frame"]) %>
+                      <% if clip["rally_index"].present? %> • rally=<%= clip["rally_index"] %><% end %>
+                    </p>
+                    <% if clip["path"].present? %>
+                      <p class="text-muted mb-0 small">path: <%= clip["path"] %></p>
+                    <% end %>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted mb-0">n/a</p>
+              <% end %>
+            </div>
+            <div class="col-12 col-lg-6">
+              <h6 class="mb-3">Worst Shots</h6>
+              <% if worst_clips.any? %>
+                <% worst_clips.each_with_index do |clip, idx| %>
+                  <% url = clip_url_for.call(clip) %>
+                  <div class="border rounded p-3 mb-3">
+                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %></p>
+                    <% if url.present? %>
+                      <video controls preload="metadata" class="w-100 rounded">
+                        <source src="<%= url %>">
+                      </video>
+                    <% else %>
+                      <p class="text-muted mb-1">No public video URL in payload.</p>
+                    <% end %>
+                    <p class="text-muted mb-0 small">
+                      frame=<%= fmt_val.call(clip["frame"]) %>
+                      <% if clip["rally_index"].present? %> • rally=<%= clip["rally_index"] %><% end %>
+                    </p>
+                    <% if clip["path"].present? %>
+                      <p class="text-muted mb-0 small">path: <%= clip["path"] %></p>
+                    <% end %>
+                  </div>
+                <% end %>
+              <% else %>
+                <p class="text-muted mb-0">n/a</p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
 
       <div class="page-card">
         <h5>Troubleshooting: Model Payload Debug</h5>
