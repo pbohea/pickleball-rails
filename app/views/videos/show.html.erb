@@ -104,21 +104,21 @@
          end %>
       <% clip_url_for = lambda do |clip|
            c = clip.is_a?(Hash) ? clip : {}
-           direct = c["url"] || c["public_url"] || c["video_url"]
-           if direct.present?
-             direct
-           else
-             gcs_uri = c["gcs_uri"].to_s
-             if gcs_client.present? && gcs_uri.start_with?("gs://")
+           gcs_uri = c["gcs_uri"].to_s
+           if gcs_client.present? && gcs_uri.start_with?("gs://")
+             begin
+               gcs_client.signed_url(gcs_uri, expires_in: 48 * 3600)
+             rescue
                begin
-                 gcs_client.signed_url(gcs_uri, expires_in: 48 * 3600)
+                 gcs_client.public_url(gcs_uri)
                rescue
-                 begin
-                   gcs_client.public_url(gcs_uri)
-                 rescue
-                   nil
-                 end
+                 nil
                end
+             end
+           else
+             direct = c["url"] || c["public_url"] || c["video_url"]
+             if direct.present?
+               direct
              else
                p = c["path"].to_s
                p.start_with?("http://", "https://") ? p : nil
