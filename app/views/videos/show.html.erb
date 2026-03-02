@@ -280,18 +280,5 @@
 
     <% end %>
 
-    <% if @conversation&.messages&.any? %>
-      <div class="page-card">
-        <h5>Conversation</h5>
-        <div class="themed-list mt-3">
-          <% @conversation.messages.order(created_at: :asc).each do |message| %>
-            <div class="list-group-item">
-              <strong class="text-uppercase"><%= message.role %>:</strong>
-              <div><%= simple_format(message.content) %></div>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    <% end %>
   </div>
 </div>
