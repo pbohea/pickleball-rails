@@ -28,6 +28,20 @@ module Gcp
       f.download.string
     end
 
+    def signed_url(gs_uri, expires_in: 3600)
+      bucket, object = parse_gs_uri(gs_uri)
+      b = @client.bucket(bucket)
+      raise "GCS bucket not found: #{bucket}" unless b
+      f = b.file(object)
+      raise "GCS object not found: #{gs_uri}" unless f
+      f.signed_url(method: "GET", expires: expires_in.to_i)
+    end
+
+    def public_url(gs_uri)
+      bucket, object = parse_gs_uri(gs_uri)
+      "https://storage.googleapis.com/#{bucket}/#{object}"
+    end
+
     private
 
     def parse_gs_uri(uri)

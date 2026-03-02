@@ -97,14 +97,32 @@
            "n/a"
            end
          end %>
+      <% gcs_client = begin
+           Gcp::StorageClient.new(bucket_name: ENV.fetch("GCS_BUCKET"))
+         rescue
+           nil
+         end %>
       <% clip_url_for = lambda do |clip|
            c = clip.is_a?(Hash) ? clip : {}
            direct = c["url"] || c["public_url"] || c["video_url"]
            if direct.present?
              direct
            else
-             p = c["path"].to_s
-             p.start_with?("http://", "https://") ? p : nil
+             gcs_uri = c["gcs_uri"].to_s
+             if gcs_client.present? && gcs_uri.start_with?("gs://")
+               begin
+                 gcs_client.signed_url(gcs_uri, expires_in: 48 * 3600)
+               rescue
+                 begin
+                   gcs_client.public_url(gcs_uri)
+                 rescue
+                   nil
+                 end
+               end
+             else
+               p = c["path"].to_s
+               p.start_with?("http://", "https://") ? p : nil
+             end
            end
          end %>
 
