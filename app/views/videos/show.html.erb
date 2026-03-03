@@ -114,32 +114,6 @@
       </div>
     <% end %>
 
-    <% coaching = @analysis&.cv_results&.dig("results", "coaching_summary") %>
-    <% if coaching.is_a?(Hash) %>
-      <% overall = coaching["overall"].is_a?(Hash) ? coaching["overall"] : {} %>
-      <div class="page-card page-card--soft">
-        <h5>Analysis details</h5>
-        <% if overall["mean_contact"].present? %>
-          <p class="mb-2">
-            <strong>ReadyScore (contact):</strong>
-            <%= format("%.1f", overall["mean_contact"].to_f) %>/100
-            <% if overall["n_scored"].present? %>
-              across <%= overall["n_scored"] %> shots
-            <% end %>
-          </p>
-        <% end %>
-        <% recommendations = Array(coaching["recommendations"]).compact %>
-        <% if recommendations.any? %>
-          <p class="mb-1"><strong>Top focus areas</strong></p>
-          <ul class="mb-0">
-            <% recommendations.first(3).each do |rec| %>
-              <li><%= rec %></li>
-            <% end %>
-          </ul>
-        <% end %>
-      </div>
-    <% end %>
-
     <% if @analysis.present? %>
       <% shot_summary = results["shot_summary"].is_a?(Hash) ? results["shot_summary"] : {} %>
       <% best_worst = shot_summary["best_worst_clips"] %>
