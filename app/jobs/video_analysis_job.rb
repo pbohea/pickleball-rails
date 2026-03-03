@@ -41,12 +41,13 @@ class VideoAnalysisJob < ApplicationJob
 
     input_uri = ensure_gcs_input(video)
     output_uri = build_output_uri(video, analysis)
-    clip_start = ENV.fetch("MODEL_RUNNER_START", "00:00:00")
+    clip_start, clip_duration = resolved_clip_window(video)
     base_cv_results = {
       "output_uri" => output_uri,
       "input_uri" => input_uri,
       "desc" => desc,
       "start" => clip_start,
+      "duration" => clip_duration,
       "poll_attempts" => 0
     }
     # Persist output location before dispatch so status polling can recover even if process exits mid-request.
@@ -63,7 +64,7 @@ class VideoAnalysisJob < ApplicationJob
         desc: desc,
         start: clip_start,
         output_uri: output_uri,
-        duration: ENV["MODEL_RUNNER_DURATION"],
+        duration: clip_duration,
         fps: ENV["MODEL_RUNNER_FPS"],
         width: ENV["MODEL_RUNNER_WIDTH"],
         select_t_sec: ENV["MODEL_RUNNER_SELECT_T_SEC"],
@@ -131,5 +132,41 @@ class VideoAnalysisJob < ApplicationJob
     bucket = ENV.fetch("GCS_BUCKET")
     dest_path = "pickleball/outputs/video_#{video.id}_analysis_#{analysis.id}.json"
     "gs://#{bucket}/#{dest_path}"
+  end
+
+  def resolved_clip_window(video)
+    env_start = ENV.fetch("MODEL_RUNNER_START", "00:00:00").to_s
+    env_duration = ENV["MODEL_RUNNER_DURATION"].presence
+
+    start_raw = video.analysis_start.to_s.strip
+    end_raw = video.analysis_end.to_s.strip
+
+    clip_start = start_raw.presence || env_start
+    clip_duration = env_duration
+
+    start_sec = parse_timecode_to_seconds(clip_start)
+    stop_sec = parse_timecode_to_seconds(end_raw)
+    if start_sec && stop_sec && stop_sec > start_sec
+      clip_duration = (stop_sec - start_sec).round(3).to_s
+    end
+
+    [clip_start, clip_duration]
+  end
+
+  def parse_timecode_to_seconds(value)
+    return nil if value.blank?
+    parts = value.to_s.split(":")
+    case parts.length
+    when 1
+      Float(parts[0])
+    when 2
+      (Float(parts[0]) * 60) + Float(parts[1])
+    when 3
+      (Float(parts[0]) * 3600) + (Float(parts[1]) * 60) + Float(parts[2])
+    else
+      nil
+    end
+  rescue ArgumentError, TypeError
+    nil
   end
 end

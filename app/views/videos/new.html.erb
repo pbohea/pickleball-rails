@@ -24,6 +24,19 @@
           <div class="form-text">We use this to distinguish you from other players.</div>
         </div>
 
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            <%= f.label :analysis_start, "Start time (optional)", class: "form-label" %>
+            <%= f.text_field :analysis_start, class: "form-control", placeholder: "00:00:30", data: { "bridge--video-upload-target": "analysisStart" } %>
+            <div class="form-text">Format: HH:MM:SS (or MM:SS).</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <%= f.label :analysis_end, "Stop time (optional)", class: "form-label" %>
+            <%= f.text_field :analysis_end, class: "form-control", placeholder: "00:01:15", data: { "bridge--video-upload-target": "analysisEnd" } %>
+            <div class="form-text">If both start and stop are set, duration is calculated automatically.</div>
+          </div>
+        </div>
+
         <% if hotwire_native_app? %>
           <div class="mb-4">
             <button type="button" class="btn btn-primary" data-action="click->bridge--video-upload#capture">

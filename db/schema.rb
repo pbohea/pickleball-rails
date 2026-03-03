@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_04_145133) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_03_101000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "unaccent"
@@ -542,6 +542,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_04_145133) do
     t.datetime "processed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "analysis_start"
+    t.string "analysis_end"
     t.index ["user_id"], name: "index_videos_on_user_id"
   end
 

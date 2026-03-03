@@ -63,7 +63,7 @@ class VideosController < ApplicationController
   end
 
   def video_params
-    params.fetch(:video, {}).permit(:title, :notes, :source, :original_video)
+    params.fetch(:video, {}).permit(:title, :notes, :source, :original_video, :analysis_start, :analysis_end)
   end
 
   def maybe_finalize_analysis(analysis)

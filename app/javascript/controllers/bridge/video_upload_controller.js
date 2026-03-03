@@ -2,7 +2,7 @@ import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
 
 export default class extends BridgeComponent {
   static component = "video-upload"
-  static targets = ["notes"]
+  static targets = ["notes", "analysisStart", "analysisEnd"]
   static values = {
     uploadUrl: String,
     csrfToken: String
@@ -14,9 +14,13 @@ export default class extends BridgeComponent {
     }
 
     const notes = this.hasNotesTarget ? this.notesTarget.value : ""
+    const analysisStart = this.hasAnalysisStartTarget ? this.analysisStartTarget.value : ""
+    const analysisEnd = this.hasAnalysisEndTarget ? this.analysisEndTarget.value : ""
     const payload = {
       uploadUrl: this.uploadUrlValue,
       notes,
+      analysis_start: analysisStart,
+      analysis_end: analysisEnd,
       csrfToken: this.csrfTokenValue
     }
 
