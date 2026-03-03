@@ -22,7 +22,7 @@
   <% elsif status_value == "complete" %>
     <div class="status-card__title">Analysis complete</div>
     <%= render "status_bar", video: video, analysis: analysis %>
-    <p class="text-muted mb-0">Scroll down to see your feedback.</p>
+    <p class="text-muted mb-0">Finalizing results...</p>
   <% else %>
     <div class="status-card__title text-danger">Analysis failed</div>
     <%= render "status_bar", video: video, analysis: analysis %>
