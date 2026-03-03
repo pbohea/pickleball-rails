@@ -26,14 +26,12 @@
 
         <div class="row g-3 mb-4">
           <div class="col-12 col-md-6">
-            <%= f.label :analysis_start, "Start time (optional)", class: "form-label" %>
-            <%= f.text_field :analysis_start, class: "form-control", placeholder: "00:00:30", data: { "bridge--video-upload-target": "analysisStart" } %>
-            <div class="form-text">Format: HH:MM:SS (or MM:SS).</div>
+            <%= f.label :analysis_start, "Start time", class: "form-label" %>
+            <%= f.text_field :analysis_start, class: "form-control", placeholder: "MM:SS", required: true, data: { "bridge--video-upload-target": "analysisStart" } %>
           </div>
           <div class="col-12 col-md-6">
-            <%= f.label :analysis_end, "Stop time (optional)", class: "form-label" %>
-            <%= f.text_field :analysis_end, class: "form-control", placeholder: "00:01:15", data: { "bridge--video-upload-target": "analysisEnd" } %>
-            <div class="form-text">If both start and stop are set, duration is calculated automatically.</div>
+            <%= f.label :analysis_end, "Stop time", class: "form-label" %>
+            <%= f.text_field :analysis_end, class: "form-control", placeholder: "MM:SS", required: true, data: { "bridge--video-upload-target": "analysisEnd" } %>
           </div>
         </div>
 

@@ -24,7 +24,7 @@
 #  fk_rails_...  (user_id => users.id)
 #
 class Video < ApplicationRecord
-  TIME_CODE_FORMAT = /\A(?:\d{1,2}:)?\d{1,2}:\d{2}(?:\.\d+)?\z/.freeze
+  TIME_CODE_FORMAT = /\A\d{1,2}:[0-5]\d\z/.freeze
 
   belongs_to :user
 
@@ -40,8 +40,8 @@ class Video < ApplicationRecord
   validates :source, presence: true
   validates :status, presence: true
   validates :notes, presence: true, if: -> { original_video.attached? }
-  validates :analysis_start, format: { with: TIME_CODE_FORMAT, message: "must be HH:MM:SS or MM:SS" }, allow_blank: true
-  validates :analysis_end, format: { with: TIME_CODE_FORMAT, message: "must be HH:MM:SS or MM:SS" }, allow_blank: true
+  validates :analysis_start, presence: true, format: { with: TIME_CODE_FORMAT, message: "must be MM:SS" }
+  validates :analysis_end, presence: true, format: { with: TIME_CODE_FORMAT, message: "must be MM:SS" }
   validate :analysis_end_after_start
 
   private
@@ -60,16 +60,12 @@ class Video < ApplicationRecord
   def parse_timecode(value)
     return nil if value.blank?
     parts = value.to_s.strip.split(":")
-    case parts.length
-    when 1
-      parts[0].to_f
-    when 2
-      (parts[0].to_f * 60) + parts[1].to_f
-    when 3
-      (parts[0].to_f * 3600) + (parts[1].to_f * 60) + parts[2].to_f
-    else
-      nil
-    end
+    return nil unless parts.length == 2
+    mm = Integer(parts[0], 10)
+    ss = Integer(parts[1], 10)
+    return nil unless mm >= 0 && ss.between?(0, 59)
+
+    (mm * 60) + ss
   rescue ArgumentError, TypeError
     nil
   end
