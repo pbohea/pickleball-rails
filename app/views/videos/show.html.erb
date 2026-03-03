@@ -63,38 +63,10 @@
       <% end %>
     <% end %>
 
-    <% if @analysis&.summary.present? %>
-      <% summary_lines = @analysis.summary.to_s.lines.map { |ln| ln.strip }.reject(&:blank?) %>
-      <% summary_bullets = summary_lines.select { |ln| ln.start_with?("-") }.map { |ln| ln.sub(/\A-\s*/, "") } %>
-      <% summary_paragraphs = summary_lines.reject { |ln| ln.start_with?("-") } %>
-      <div class="page-card">
-        <h4>Coach feedback</h4>
-        <% if @analysis.started_at.present? && @analysis.completed_at.present? %>
-          <% duration_seconds = (@analysis.completed_at - @analysis.started_at).to_i %>
-          <% minutes = duration_seconds / 60 %>
-          <% seconds = duration_seconds % 60 %>
-          <p class="text-muted mb-3">Processed in <%= pluralize(minutes, "minute") %> and <%= pluralize(seconds, "second") %>.</p>
-        <% end %>
-        <% summary_paragraphs.each do |line| %>
-          <p class="mb-2"><%= line %></p>
-        <% end %>
-        <% if summary_bullets.any? %>
-          <ul class="mb-0">
-            <% summary_bullets.each do |item| %>
-              <li><%= item %></li>
-            <% end %>
-          </ul>
-        <% end %>
-      </div>
-    <% end %>
-
     <% if llm_sections.values.any?(&:any?) || llm_intro.any? %>
       <div class="page-card page-card--soft">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <h5 class="mb-0">AI coaching plan</h5>
-          <% if llm_report["source"].present? %>
-            <span class="badge text-bg-light border"><%= llm_report["source"] %></span>
-          <% end %>
+          <h5 class="mb-0">Coaching Plan</h5>
         </div>
         <% if llm_intro.any? %>
           <% llm_intro.each do |line| %>
@@ -169,10 +141,7 @@
     <% end %>
 
     <% if @analysis.present? %>
-      <% input = payload["input"].is_a?(Hash) ? payload["input"] : {} %>
       <% shot_summary = results["shot_summary"].is_a?(Hash) ? results["shot_summary"] : {} %>
-      <% coaching_summary = results["coaching_summary"].is_a?(Hash) ? results["coaching_summary"] : {} %>
-      <% overall = coaching_summary["overall"].is_a?(Hash) ? coaching_summary["overall"] : {} %>
       <% best_worst = shot_summary["best_worst_clips"] %>
       <% best_worst = form_analysis["best_worst_clips"] if !best_worst.is_a?(Hash) %>
       <% best_clips = best_worst.is_a?(Hash) ? Array(best_worst["best"]).compact : [] %>
@@ -218,7 +187,6 @@
       <% if best_clips.any? || worst_clips.any? %>
         <div class="page-card">
           <h5>Best / Worst Clips</h5>
-          <p class="text-muted mb-3">Videos render when the payload contains a public URL. Local runner file paths are shown as metadata only.</p>
           <div class="row g-4">
             <div class="col-12 col-lg-6">
               <h6 class="mb-3">Best Shots</h6>
@@ -232,14 +200,7 @@
                         <source src="<%= url %>">
                       </video>
                     <% else %>
-                      <p class="text-muted mb-1">No public video URL in payload.</p>
-                    <% end %>
-                    <p class="text-muted mb-0 small">
-                      frame=<%= fmt_val.call(clip["frame"]) %>
-                      <% if clip["rally_index"].present? %> • rally=<%= clip["rally_index"] %><% end %>
-                    </p>
-                    <% if clip["path"].present? %>
-                      <p class="text-muted mb-0 small">path: <%= clip["path"] %></p>
+                      <p class="text-muted mb-0">Clip unavailable</p>
                     <% end %>
                   </div>
                 <% end %>
@@ -259,14 +220,7 @@
                         <source src="<%= url %>">
                       </video>
                     <% else %>
-                      <p class="text-muted mb-1">No public video URL in payload.</p>
-                    <% end %>
-                    <p class="text-muted mb-0 small">
-                      frame=<%= fmt_val.call(clip["frame"]) %>
-                      <% if clip["rally_index"].present? %> • rally=<%= clip["rally_index"] %><% end %>
-                    </p>
-                    <% if clip["path"].present? %>
-                      <p class="text-muted mb-0 small">path: <%= clip["path"] %></p>
+                      <p class="text-muted mb-0">Clip unavailable</p>
                     <% end %>
                   </div>
                 <% end %>
