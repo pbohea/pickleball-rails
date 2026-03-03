@@ -424,3 +424,17 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 12px 24px rgba(13, 27, 30, 0.05);
   backdrop-filter: blur(8px);
 }
+
+.site-navbar .dinkster-wordmark {
+  font-family: "Fraunces", "Times New Roman", serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--sea-500);
+  text-decoration: none;
+}
+
+.site-navbar .dinkster-wordmark:hover,
+.site-navbar .dinkster-wordmark:focus {
+  color: #0f676a;
+}
