@@ -168,7 +168,7 @@
                 <% best_clips.each_with_index do |clip, idx| %>
                   <% url = clip_url_for.call(clip) %>
                   <div class="border rounded p-3 mb-3">
-                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %></p>
+                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %>/100</p>
                     <% if url.present? %>
                       <video controls preload="metadata" class="w-100 rounded">
                         <source src="<%= url %>">
@@ -183,12 +183,12 @@
               <% end %>
             </div>
             <div class="col-12 col-lg-6">
-              <h6 class="mb-3">Worst Shots</h6>
+              <h6 class="mb-3">Areas for Improvement</h6>
               <% if worst_clips.any? %>
                 <% worst_clips.each_with_index do |clip, idx| %>
                   <% url = clip_url_for.call(clip) %>
                   <div class="border rounded p-3 mb-3">
-                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %></p>
+                    <p class="mb-2"><strong>#<%= idx + 1 %></strong> • <%= fmt_val.call(clip["shot_type"]) %> • score <%= fmt_num.call(clip["score"], 1) %>/100</p>
                     <% if url.present? %>
                       <video controls preload="metadata" class="w-100 rounded">
                         <source src="<%= url %>">
